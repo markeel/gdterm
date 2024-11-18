@@ -1,0 +1,7 @@
+[submodule "godot-cpp"]
+	path = godot-cpp
+	url = https://github.com/godotengine/godot-cpp
+	branch = 4.3
+[submodule "src/gdterm/thirdparty/libtmt"]
+	path = src/gdterm/thirdparty/libtmt
+	url = git@github.com:markeel/libtmt.git
