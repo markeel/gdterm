@@ -1,4 +1,4 @@
-# Project Title
+# GDTerm
 
 GDTerm the Godot In-Editor Terminal
 
