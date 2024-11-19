@@ -55,6 +55,31 @@ To compile from source instead of using the pre-compiled library:
 * Click Plugins tab
 * Select Enabled checkbox next to "GDTerm"
 
+### Using the terminal
+
+A default instance of a terminal will be available when selecting the "Terminal" button
+
+#### Copy and Paste
+
+The mouse can be used to select text:
+* single-click and drag to highlight characters
+* double-click and drag to highlight words
+* triple-click and drag to highlight lines
+
+The context menu (Right-Click) includes a copy and paste which goes to the system clipboard.
+
+#### New and Close
+
+A new terminal can be created by adding one above, below, left, or right of the window the
+context menu is in.  
+
+A terminal can be closed from the context menu as well.
+
+#### Restart
+
+A restart will clear the window and start a new terminal session.  This is also the way to
+get a terminal session going again if the shell being used by this terminal has been exited.
+
 ## Help
 
 This is a brand new extension, so if you run into problems, create an issue.
