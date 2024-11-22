@@ -82,7 +82,8 @@ get a terminal session going again if the shell being used by this terminal has 
 
 ## Help
 
-This is a brand new extension, so if you run into problems, create an issue.
+This is a brand new extension, so if you run into problems, create an issue, for general 
+questions you can use the Discussions tab.
 
 ## Authors
 
