@@ -2,7 +2,6 @@
 #include "gdterm.h"
 #include "godot_cpp/classes/display_server.hpp"
 #include "godot_cpp/classes/global_constants.hpp"
-#include "godot_cpp/classes/input_event_mouse.hpp"
 #include "godot_cpp/classes/input_event_mouse_button.hpp"
 #include "godot_cpp/classes/input_event_mouse_motion.hpp"
 #include "godot_cpp/classes/viewport.hpp"
@@ -26,6 +25,8 @@ static const int STATE_SCREEN_DONE    = 4;
 static const int SELECT_MODE_CHAR   = 1;
 static const int SELECT_MODE_WORD   = 2;
 static const int SELECT_MODE_LINE   = 3;
+
+extern PtyProxy * create_proxy(TermRenderer * renderer);
 
 void GDTerm::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_font"), &GDTerm::get_font);
@@ -408,7 +409,7 @@ GDTerm::start() {
 	clear();
 
 	// Create a new proxy
-	_proxy = new PtyProxy(this);
+	_proxy = create_proxy(this);
 	_proxy->resize_screen(_rows, _cols);
 }
 
@@ -806,7 +807,7 @@ GDTerm::screen_set_row(int row) {
 		return;
 	}
 	if (row > _pending_screen_lines.size()) {
-		fprintf(stderr, "Invalid row %d: maximum value %ld\n", row, _pending_screen_lines.size());
+		fprintf(stderr, "Invalid row %d: maximum value %zu\n", row, _pending_screen_lines.size());
 		return;
 	}
 	_pending_screen_row = row;
@@ -966,7 +967,8 @@ GDTerm::_calc_select_word_col(const GDTermLine & line, int & start_col, int & en
 	for (int i=0; i<line.dirs.size(); i++) {
 		if (line.dirs[i].kind == DIRECTIVE_WRITE_GLYPH) {
 			wchar_t buf[2];
-			mbstowcs(buf, line.dirs[i].data.text.c_str(), 1);
+			size_t num_converted;
+			mbstowcs_s(&num_converted, buf, line.dirs[i].data.text.c_str(), 1);
 			if (isspace(buf[0])) {
 				if (found_word) {
 					return;
