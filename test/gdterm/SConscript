@@ -4,4 +4,7 @@ proxy_test_env = env.Clone()
 proxy_test_env.Append(CPPPATH="#src/gdterm/pty")
 proxy_test = proxy_test_env.Program(target="proxy_test", source="proxy_test.cpp", LIB=ptylib)
  
-Return("proxy_test")
+show_options_env = env.Clone()
+show_options = show_options_env.Program("show_options.cpp")
+
+Return("proxy_test", "show_options")
