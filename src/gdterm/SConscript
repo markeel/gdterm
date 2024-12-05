@@ -1,0 +1,12 @@
+Import('env', 'name', 'ptylib')
+
+libenv = env.Clone()
+sources = Glob("*.cpp")
+
+env.Append(CPPPATH="pty")
+env.Append(CPPPATH="pty/thirdparty")
+env.Append(LIBS=ptylib)
+
+library = env.SharedLibrary(name, source=sources)
+
+Return("library")

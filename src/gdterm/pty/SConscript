@@ -1,0 +1,19 @@
+Import('env')
+
+ptyenv = env.Clone()
+ 
+cpppath = [ ".", "thirdparty" ]
+sources = Glob("thirdparty/libtmt/*.c")
+sources.extend(Glob("*.cpp"))
+if env["platform"] == "windows":
+	sources.extend(Glob("platform/windows/*.cpp"))
+	cpppath.extend([ "platform/windows" ])
+	ptyenv.Append(CCFLAGS="-DUNICODE")
+else:
+	sources.extend(Glob("platform/linux/*.cpp"))
+	cpppath.extend([ "platform/linux" ])
+
+ptyenv.Append(CPPPATH=cpppath)
+ptylib = ptyenv.StaticLibrary("libpty{}{}".format(env["suffix"], env["SHLIBSUFFIX"]), source=sources)
+
+Return("ptylib")
