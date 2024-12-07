@@ -14,6 +14,6 @@ else:
 	cpppath.extend([ "platform/linux" ])
 
 ptyenv.Append(CPPPATH=cpppath)
-ptylib = ptyenv.StaticLibrary("libpty{}{}".format(env["suffix"], env["SHLIBSUFFIX"]), source=sources)
+ptylib = ptyenv.StaticLibrary("libpty{}{}".format(env["suffix"], env["LIBSUFFIX"]), source=sources)
 
 Return("ptylib")

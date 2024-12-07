@@ -12,8 +12,9 @@ extern "C" {
 		int total = 0;
 		for (int i=start; i<end; i++) {
 			mbstate_t state;
+			size_t len;
 			memset(&state, 0, sizeof(mbstate_t));
-            int len = wcrtomb(pos, chars[i].c, &state);
+            wcrtomb_s(&len, pos, end-total, chars[i].c, &state);
 		    if (len > 0) {
 			   pos += len;
 			   total += len;
@@ -219,12 +220,16 @@ PtyProxy::~PtyProxy() {
 
 void
 PtyProxy::_handle_from_pty(unsigned char * data, int data_len) {
-	if (data_len < 100) {
-		char buffer[100];
-		memcpy(buffer, data, data_len);
-		buffer[data_len] = '\0';
+	if (_renderer != nullptr) {
+		_renderer->log_vt_handler_input(data, data_len);
 	}
 	tmt_write(_tmt, (const char *)data, data_len);
+}
+
+void
+PtyProxy::_apply_resize() {
+	tmt_resize(_tmt, _num_rows, _num_cols);
+	_renderer->resize_complete();
 }
 
 void

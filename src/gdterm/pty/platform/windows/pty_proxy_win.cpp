@@ -60,17 +60,11 @@ PtyProxyWin::~PtyProxyWin() {
 
 void
 PtyProxyWin::_exit_pty() {
-	fprintf(stderr, "changing state to exiting\n");
 	_set_state(STATE_EXITING);
-	fprintf(stderr, "waking TO thread\n");
 	_wake_to_thread();
-	fprintf(stderr, "waking FROM thread\n");
 	_wake_from_thread();
-	fprintf(stderr, "joining threads\n");
 	_join_threads();
-	fprintf(stderr, "terminate process\n");
 	_terminate_process();
-	fprintf(stderr, "close pty\n");
 	_close_pty();
 }
 
@@ -93,7 +87,6 @@ PtyProxyWin::_wake_to_thread() {
 
 void
 PtyProxyWin::_wake_from_thread() {
-	fprintf(stderr, "calling wake from thread\n");
 	if (!CancelSynchronousIo(_from_thread)) {
 		_print_last_error("unable to cancel i/o on read thread");
 	}
@@ -171,6 +164,12 @@ PtyProxyWin::resize_screen(int nrows, int ncols) {
 	console_size.X = _num_cols;
 	console_size.Y = _num_rows;
 	HRESULT result = ResizePseudoConsole(_pty_console, console_size);
+	if (result != S_OK) {
+		_print_last_error("unable to resize pseudo console");
+	}
+	if (_renderer != nullptr) {
+		_apply_resize();
+	}
 }
 
 void
@@ -199,12 +198,9 @@ PtyProxyWin::_run_from_thread() {
 	while (_can_read()) {
 		DWORD read_bytes;
 		unsigned char buffer[MAX_READ_BUFFER] {};
-		fprintf(stderr, "reading from pty\n");
 		BOOL result = ReadFile(_from_pty, buffer, MAX_READ_BUFFER, &read_bytes, NULL);
-		fprintf(stderr, "done reading from pty\n");
 		_handle_from_pty(buffer, read_bytes);
 	}
-	fprintf(stderr, "from thread exited\n");
 }
 
 bool
@@ -221,7 +217,6 @@ PtyProxyWin::_run_to_thread() {
 	while (_can_write()) {
 		std::unique_lock<std::mutex> lock(_to_mutex);
 		if (_to_buffer_pos == 0) {
-			fprintf(stderr, "Waiting for more data\n");
 			_to_ready.wait(lock);
 		} 
 		if (_to_buffer_pos > 0) {
@@ -231,7 +226,6 @@ PtyProxyWin::_run_to_thread() {
 
 			DWORD bytes_written {};
 			while (cur_pos < cur_len) {
-				fprintf(stderr, "Writing data\n");
 				if (WriteFile(_to_pty, &_to_buffer[cur_pos], cur_len, &bytes_written, NULL)) {
 					cur_pos += bytes_written;
 				} else {
@@ -249,7 +243,6 @@ PtyProxyWin::_run_to_thread() {
 			}
 		}
 	}
-	fprintf(stderr, "TO thread exited\n");
 }
 
 void

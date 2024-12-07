@@ -9,6 +9,7 @@
 
 #include <vector>
 #include <string>
+#include <fstream>
 
 namespace godot {
 
@@ -48,6 +49,7 @@ namespace godot {
 		Color      white;
 		Color      foreground;
 		Color      background;
+		String     vt_handler_log_path;
 
 		PtyProxy * _proxy;
 
@@ -105,6 +107,9 @@ namespace godot {
 		// Send Input 
 		String   _send_input_buffer;
 
+		// Logging
+		std::fstream * _vt_handler_input_log;
+
 	protected:
 		static void _bind_methods();
 
@@ -154,6 +159,9 @@ namespace godot {
 		void set_background(Color c);
 		Color get_background() const;
 
+		void set_vt_handler_log_path(String c);
+		String get_vt_handler_log_path() const;
+
 		void clear();
 		void start();
 		void stop();
@@ -185,6 +193,7 @@ namespace godot {
 		virtual void show_cursor(bool flag) override;
 		virtual void resize_complete() override;
 		virtual void exited() override;
+		virtual void log_vt_handler_input(unsigned char * data, int data_len) override;
 
 	private:
 		void _make_pending_active();
@@ -208,6 +217,7 @@ namespace godot {
 		void _send_input_chunk(int max_send);
 		bool _is_screen_dirty();
 		void _clear_pending();
+		void _resize_screen_lines();
 
 		void _on_cursor_timeout();
 		void _on_blink_timeout();

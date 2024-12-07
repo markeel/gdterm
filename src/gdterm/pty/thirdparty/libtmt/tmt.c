@@ -72,7 +72,7 @@ struct TMT{
     size_t pars[PAR_MAX];   
     size_t npar;
     size_t arg;
-    enum {S_NUL, S_ESC, S_ARG} state;
+    enum {S_NUL, S_ESC, S_ARG, S_OS} state;
 };
 
 static TMTATTRS defattrs = {.fg = TMT_COLOR_DEFAULT, .bg = TMT_COLOR_DEFAULT};
@@ -281,6 +281,7 @@ handlechar(TMT *vt, char i)
     #define ON(S, C, A) if (vt->state == (S) && strchr(C, i)){ A; return true;}
     #define DO(S, C, A) ON(S, C, consumearg(vt); if (!vt->ignored) {A;} \
                                  fixcursor(vt); resetparser(vt););
+	#define SK(S) if (vt->state == (S)) { return true; }
 
     DO(S_NUL, "\x07",       CB(vt, TMT_MSG_BELL, NULL))
     DO(S_NUL, "\x08",       if (c->c) c->c--)
@@ -295,6 +296,10 @@ handlechar(TMT *vt, char i)
     ON(S_ESC, "+*()",       vt->ignored = true; vt->state = S_ARG)
     DO(S_ESC, "c",          tmt_reset(vt))
     ON(S_ESC, "[",          vt->state = S_ARG)
+    ON(S_ESC, "]",          vt->state = S_OS)
+    ON(S_OS,  "\x1b",       vt->state = S_ESC)
+    ON(S_OS,  "\x07",       vt->state = S_NUL)
+	SK(S_OS)
     ON(S_ARG, "\x1b",       vt->state = S_ESC)
     ON(S_ARG, ";",          consumearg(vt))
     ON(S_ARG, "?",          (void)0)
@@ -460,21 +465,24 @@ writecharatcurs(TMT *vt, wchar_t w)
     if (wcwidth(w) < 0) return;
     #endif
 
-    CLINE(vt)->chars[vt->curs.c].c = w;
-    CLINE(vt)->chars[vt->curs.c].a = vt->attrs;
-    CLINE(vt)->dirty = vt->dirty = true;
-
-    if (c->c < s->ncol - 1)
-        c->c++;
-    else{
-        c->c = 0;
-        c->r++;
-    }
-
+	/* If at end of screen, wrap to next line */
+	if (c->c >= s->ncol) {
+		c->c = 0;
+		c->r++;
+	}
     if (c->r >= s->nline){
         c->r = s->nline - 1;
         scrup(vt, 0, 1);
     }
+
+    CLINE(vt)->chars[vt->curs.c].c = w;
+    CLINE(vt)->chars[vt->curs.c].a = vt->attrs;
+    CLINE(vt)->dirty = vt->dirty = true;
+
+	/* Advance cursor to next column 
+	   Will wrap if necessary when trying to write next character. */
+	c->c++;
+
 }
 
 static inline size_t

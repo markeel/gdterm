@@ -66,6 +66,10 @@ class TestRenderer : public TermRenderer {
 		virtual void exited() {
 			fprintf(stdout, "exited()\n");
 		}
+
+		virtual void log_vt_handler_input(unsigned char * c, int len) {
+			fprintf(stdout, "log_vt_handler_input(%s, %d)\n", c, len);
+		}
 };
 
 int 

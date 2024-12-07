@@ -4,6 +4,7 @@
 #include "godot_cpp/classes/global_constants.hpp"
 #include "godot_cpp/classes/input_event_mouse_button.hpp"
 #include "godot_cpp/classes/input_event_mouse_motion.hpp"
+#include "godot_cpp/classes/project_settings.hpp"
 #include "godot_cpp/classes/viewport.hpp"
 #include "key_converter.h"
 #include <assert.h>
@@ -57,6 +58,8 @@ void GDTerm::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_foreground", "foreground"), &GDTerm::set_foreground);
 	ClassDB::bind_method(D_METHOD("get_background"), &GDTerm::get_background);
 	ClassDB::bind_method(D_METHOD("set_background", "background"), &GDTerm::set_background);
+	ClassDB::bind_method(D_METHOD("get_vt_handler_log_path"), &GDTerm::get_vt_handler_log_path);
+	ClassDB::bind_method(D_METHOD("set_vt_handler_log_path", "vt_handler_log_path"), &GDTerm::set_vt_handler_log_path);
 	ClassDB::bind_method(D_METHOD("clear"), &GDTerm::clear);
 	ClassDB::bind_method(D_METHOD("is_active"), &GDTerm::is_active);
 	ClassDB::bind_method(D_METHOD("start"), &GDTerm::start);
@@ -91,6 +94,8 @@ void GDTerm::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "foreground"), "set_foreground", "get_foreground");
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "background"), "set_background", "get_background");
 
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "vt_handler_log_path"), "set_vt_handler_log_path", "get_vt_handler_log_path");
+
 	ADD_SIGNAL(MethodInfo("bell_request"));
 	ADD_SIGNAL(MethodInfo("inactive"));
 	ADD_SIGNAL(MethodInfo("scrollback_changed"));
@@ -110,6 +115,7 @@ GDTerm::GDTerm() {
 	background = godot::Color("#EEEEEE");
 	set_clip_contents(true);
 	set_focus_mode(Control::FocusMode::FOCUS_ALL);
+	set_vt_handler_log_path("");
 
 	// Proxy
 	_proxy = nullptr;
@@ -153,6 +159,9 @@ GDTerm::GDTerm() {
 	_select_end_row = 0;
 	_select_end_col = 0;
 	_select_mode = SELECT_MODE_CHAR;
+
+	// Logging
+	_vt_handler_input_log = nullptr;
 }
 
 GDTerm::~GDTerm() {
@@ -200,6 +209,8 @@ GDTerm::_ready() {
 	connect("focus_entered", Callable(this, "_on_focus_entered"));
 	connect("focus_exited", Callable(this, "_on_focus_exited"));
 	connect("resized", Callable(this, "_on_resized"));
+
+	_do_resize();
 }
 
 void
@@ -317,6 +328,27 @@ GDTerm::set_background(Color c) {
 	}
 }
 
+String
+GDTerm::get_vt_handler_log_path() const {
+	return vt_handler_log_path;
+}
+
+void
+GDTerm::set_vt_handler_log_path(String log_path) {
+	if (vt_handler_log_path != log_path) {
+		vt_handler_log_path = log_path;
+		if (_vt_handler_input_log != nullptr) {
+			_vt_handler_input_log->close();
+			delete _vt_handler_input_log;
+		}
+		if (vt_handler_log_path.length() != 0) {
+			_vt_handler_input_log = new std::fstream();
+			String os_path = ProjectSettings::get_singleton()->globalize_path(vt_handler_log_path);
+			_vt_handler_input_log->open(os_path.utf8(), std::ios::out);
+		}
+	}
+}
+
 Color
 GDTerm::get_background() const {
 	return background;
@@ -418,6 +450,12 @@ GDTerm::stop() {
 	if (_proxy != nullptr) {
 		delete _proxy;
 		_proxy = nullptr;
+	}
+
+	if (_vt_handler_input_log != nullptr) {
+		_vt_handler_input_log->close();
+		delete _vt_handler_input_log;
+		_vt_handler_input_log = nullptr;
 	}
 }
 
@@ -627,7 +665,6 @@ GDTerm::_process(double p_delta) {
 
 void
 GDTerm::_draw() {
-
 	// Don't draw unless there is a font
 	if (font.is_null() || dim_font.is_null() || bold_font.is_null()) {
 		return;
@@ -938,7 +975,7 @@ void
 GDTerm::resize_complete() {
 	const std::lock_guard<std::mutex> lock(_pending_mutex);
 	_pending_state = STATE_SCREEN_DONE;
-	call_deferred("queue_redraw");
+	//call_deferred("queue_redraw");
 }
 
 bool
@@ -1283,16 +1320,17 @@ GDTerm::_is_control_c(Key code) {
 
 void 
 GDTerm::_do_resize() {
-	if (!is_inside_tree()) {
-		return;
-	}
-
 	if (font == nullptr) {
 		return;
 	}
 
-	Vector2 size = get_size();
 	_font_space_size = font->get_string_size(" ", godot::HORIZONTAL_ALIGNMENT_LEFT, -1, font_size);
+
+	if (!is_inside_tree()) {
+		return;
+	}
+
+	Vector2 size = get_size();
 
 	int num_cols = size.x / _font_space_size.x;
 	if (num_cols < 2) {
@@ -1325,7 +1363,7 @@ GDTerm::_get_minimum_size() const {
 }
 
 void
-GDTerm::_resize_pty() {
+GDTerm::_resize_screen_lines() {
 	const std::lock_guard<std::mutex> lock(_pending_mutex);
 	_pending_state = STATE_SCREEN_RESIZE;
 	_screen_lines.resize(_rows); 
@@ -1336,7 +1374,7 @@ GDTerm::_resize_pty() {
 	space_dir.kind = DIRECTIVE_WRITE_GLYPH;
 	space_dir.data = space;
 	for (int i=0; i<_pending_screen_lines.size(); i++) {
-	    GDTermLine &line = _pending_screen_lines[i];	
+		GDTermLine &line = _pending_screen_lines[i];	
 		int col = 0;
 		auto dir_iter = line.dirs.begin();
 		auto dir_end = line.dirs.end();
@@ -1355,7 +1393,11 @@ GDTerm::_resize_pty() {
 		}
 	}
 	_pending_dirty = true;
+}
 
+void
+GDTerm::_resize_pty() {
+	_resize_screen_lines();
 	if (_proxy != nullptr) {
 		_proxy->resize_screen(_rows, _cols);
 	}
@@ -1432,3 +1474,11 @@ GDTerm::_send_input_chunk(int max_send) {
 	}
 }
 
+void
+GDTerm::log_vt_handler_input(unsigned char * data, int data_len) {
+	if (_vt_handler_input_log != nullptr) {
+		std::string s((char *)data, data_len);
+		*_vt_handler_input_log << "VT:'" << s << "':VT" << std::endl;
+		_vt_handler_input_log->flush();
+	}
+}

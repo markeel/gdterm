@@ -42,6 +42,7 @@ class TermRenderer {
 		virtual void show_cursor(bool flag) = 0;
 		virtual void resize_complete() = 0;
 		virtual void exited() = 0;
+		virtual void log_vt_handler_input(unsigned char * data, int data_len) = 0;
 };
 
 class PtyProxy {
@@ -78,6 +79,7 @@ protected:
 	int _num_cols;
 
 	void _handle_from_pty(unsigned char * buffer, int len);
+	void _apply_resize();
 
 };
 
