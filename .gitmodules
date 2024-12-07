@@ -2,6 +2,6 @@
 	path = godot-cpp
 	url = https://github.com/godotengine/godot-cpp
 	branch = 4.3
-[submodule "src/gdterm/thirdparty/libtmt"]
-	path = src/gdterm/thirdparty/libtmt
-	url = git@github.com:markeel/libtmt.git
+[submodule "src/gdterm/pty/thirdparty/libtmt"]
+	path = src/gdterm/pty/thirdparty/libtmt
+	url = https://github.com/markeel/libtmt.git
