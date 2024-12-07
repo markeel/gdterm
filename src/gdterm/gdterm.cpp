@@ -1005,7 +1005,11 @@ GDTerm::_calc_select_word_col(const GDTermLine & line, int & start_col, int & en
 		if (line.dirs[i].kind == DIRECTIVE_WRITE_GLYPH) {
 			wchar_t buf[2];
 			size_t num_converted;
+#ifdef USE_WCRTOMB_S
 			mbstowcs_s(&num_converted, buf, line.dirs[i].data.text.c_str(), 1);
+#else
+			num_converted = mbstowcs(buf, line.dirs[i].data.text.c_str(), 1);
+#endif
 			if (isspace(buf[0])) {
 				if (found_word) {
 					return;

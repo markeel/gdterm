@@ -14,7 +14,11 @@ extern "C" {
 			mbstate_t state;
 			size_t len;
 			memset(&state, 0, sizeof(mbstate_t));
+#ifdef USE_WCRTOMB_S
             wcrtomb_s(&len, pos, end-total, chars[i].c, &state);
+#else
+            len = wcrtomb(pos, chars[i].c, &state);
+#endif
 		    if (len > 0) {
 			   pos += len;
 			   total += len;
@@ -224,6 +228,13 @@ PtyProxy::_handle_from_pty(unsigned char * data, int data_len) {
 		_renderer->log_vt_handler_input(data, data_len);
 	}
 	tmt_write(_tmt, (const char *)data, data_len);
+}
+
+void
+PtyProxy::_handle_pty_exited() {
+	if (_renderer != nullptr) {
+		_renderer->exited();
+	}
 }
 
 void

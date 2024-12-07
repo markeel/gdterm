@@ -79,6 +79,7 @@ protected:
 	int _num_cols;
 
 	void _handle_from_pty(unsigned char * buffer, int len);
+	void _handle_pty_exited();
 	void _apply_resize();
 
 };
