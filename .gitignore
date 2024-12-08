@@ -2,4 +2,6 @@
 .cache
 .sconsign.dblite
 compile_commands.json
+.sconf_temp
+config.log
 build/

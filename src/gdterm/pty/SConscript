@@ -2,6 +2,11 @@ Import('env')
 
 ptyenv = env.Clone()
  
+conf = Configure(ptyenv)
+if conf.CheckFunc('wcrtomb_s'):
+	conf.env.Append(CPPDEFINES = "USE_WCRTOMB_S")
+ptyenv = conf.Finish()
+
 cpppath = [ ".", "thirdparty" ]
 sources = Glob("thirdparty/libtmt/*.c")
 sources.extend(Glob("*.cpp"))
