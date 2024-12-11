@@ -1,11 +1,12 @@
 Import('env')
 
+checkenv = Environment()
+conf = Configure(checkenv)
+if conf.CheckFunc('mbstowcs_s'):
+	env.Append(CPPDEFINES = "USE_WCRTOMB_S")
+conf.Finish()
+
 ptyenv = env.Clone()
- 
-conf = Configure(ptyenv)
-if conf.CheckFunc('wcrtomb_s'):
-	conf.env.Append(CPPDEFINES = "USE_WCRTOMB_S")
-ptyenv = conf.Finish()
 
 cpppath = [ ".", "thirdparty" ]
 sources = Glob("thirdparty/libtmt/*.c")

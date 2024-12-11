@@ -5,3 +5,4 @@ compile_commands.json
 .sconf_temp
 config.log
 build/
+*.bak

@@ -66,6 +66,8 @@ PtyProxyWin::_exit_pty() {
 	_join_threads();
 	_terminate_process();
 	_close_pty();
+
+	_handle_pty_exited();
 }
 
 void

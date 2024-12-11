@@ -6,6 +6,7 @@
 #include "godot_cpp/classes/input_event_mouse_motion.hpp"
 #include "godot_cpp/classes/project_settings.hpp"
 #include "godot_cpp/classes/viewport.hpp"
+#include "godot_cpp/variant/utility_functions.hpp"
 #include "key_converter.h"
 #include <assert.h>
 #include <godot_cpp/core/class_db.hpp>
@@ -209,8 +210,6 @@ GDTerm::_ready() {
 	connect("focus_entered", Callable(this, "_on_focus_entered"));
 	connect("focus_exited", Callable(this, "_on_focus_exited"));
 	connect("resized", Callable(this, "_on_resized"));
-
-	_do_resize();
 }
 
 void
@@ -422,6 +421,13 @@ GDTerm::clear() {
 
 void
 GDTerm::start() {
+
+	// Make sure it inside the tree before starting
+	if (!is_inside_tree()) {
+		UtilityFunctions::printerr("started terminal prior to being inside tree");
+		return;
+	}
+
 	// Make sure it isn't already active and set active atomically
 	{
 		const std::lock_guard<std::mutex> lock(_pending_mutex);
@@ -720,7 +726,11 @@ GDTerm::_gui_input(const Ref<InputEvent> & p_event) {
 			} else {
 				char buffer[100];
 				fill_term_string(buffer, 100, unicode, code);
-				_proxy->send_string(buffer);
+				if (_proxy != nullptr) {
+					_proxy->send_string(buffer);
+				} else {
+					emit_signal("bell_request");
+				}
 				if (_is_control_c(code)) {
 					_send_input_buffer = "";
 				}
@@ -1355,8 +1365,6 @@ GDTerm::_do_resize() {
 		_rows = num_rows;
 		_cols = num_cols;
 		_resize_pty();
-
-		emit_signal("scrollback_changed");
 	}
 	queue_redraw();
 }

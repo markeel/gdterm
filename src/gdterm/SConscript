@@ -4,14 +4,8 @@ env.Append(CPPPATH="pty")
 env.Append(CPPPATH="pty/thirdparty")
 env.Append(LIBS=ptylib)
 
-libenv = env.Clone()
 sources = Glob("*.cpp")
 
-conf = Configure(libenv)
-if conf.CheckFunc('wcrtomb_s'):
-	conf.env.Append(CPPDEFINES = "USE_WCRTOMB_S")
-libenv = conf.Finish()
-
-library = libenv.SharedLibrary(name, source=sources)
+library = env.SharedLibrary(name, source=sources)
 
 Return("library")
