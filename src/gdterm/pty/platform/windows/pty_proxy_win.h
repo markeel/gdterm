@@ -2,9 +2,14 @@
 #ifndef PTY_PROXY_WIN_H
 #define PTY_PROXY_WIN_H
 
+#define NTDDI_VERSION 0x0A000006
+
 #include "pty_proxy.h"
 #include <Windows.h>
+#include <wincon.h>
 #include <mutex>
+#include <condition_variable>
+#include <cstring>
 
 static const int TO_BUFFER_MAX_SIZE = 1024;
 
