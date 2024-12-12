@@ -9,7 +9,9 @@
 #include <wincon.h>
 #include <mutex>
 #include <condition_variable>
+#ifdef __MINGW64__
 #include <cstring>
+#endif
 
 static const int TO_BUFFER_MAX_SIZE = 1024;
 
