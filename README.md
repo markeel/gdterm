@@ -37,12 +37,12 @@ that will make it easier to install.
 
 To use the pre-compiled binaries:
 
-* git clone http://markeel/gdterm
+* git clone http://github.com/markeel/gdterm
 * copy addons directory to the Godot project you need this extension
 
 To compile from source instead of using the pre-compiled library:
 
-* git clone http://markeel/gdterm
+* git clone http://github.com/markeel/gdterm
 * git submodule update --init --recursive
 * cd gdterm
 * scons
