@@ -32,6 +32,8 @@ jobs:
       #
     steps:
       - uses: actions/checkout@v4
+        with: 
+          submodules: recursive
 
       - name: Build image
         run: docker build . --file build-containers/Dockerfile.base --tag $IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
