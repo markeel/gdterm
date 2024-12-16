@@ -17,7 +17,8 @@ ptylib = SConscript("src/gdterm/pty/SConscript", variant_dir="build/gdterm/pty",
 library = SConscript("src/gdterm/SConscript", variant_dir="build/gdterm", duplicate=0, exports=["env", "name", "ptylib"])
 tests = SConscript("test/gdterm/SConscript", variant_dir="build/test", duplicate=0, exports=["env", "ptylib"])
 
+env.Alias('tests', tests)
 addon_lib = "addons/gdterm/bin/{}".format(name)
 Command(addon_lib, library, Copy('$TARGET', '$SOURCE'))
-Default(addon_lib, "compile_commands.json", tests)
+Default(addon_lib, "compile_commands.json")
 
