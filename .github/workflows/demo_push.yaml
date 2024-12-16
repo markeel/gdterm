@@ -6,13 +6,18 @@ name: Demo Push
 # - A tag starting with "v" is created
 # - A pull request is created or updated
 on:
-  push:
-    branches:
-      - main
-      - seed
-    tags:
-      - v*
-  pull_request:
+  workflow_dispatch:
+    # Inputs the workflow accepts.
+    inputs:
+      name:
+        # Friendly description to be shown in the UI instead of 'name'
+        description: 'Person to greet'
+        # Default value if no value is explicitly provided
+        default: 'World'
+        # Input has to be provided for the workflow to run
+        required: true
+        # The data type of the input
+        type: string
   # This creates an environment variable called `IMAGE_NAME ` with the value `ghtoken_product_demo`.
 env:
   IMAGE_NAME: ghtoken_product_demo
