@@ -1,0 +1,8 @@
+ARG gdterm_version
+FROM ${gdterm_version}
+
+COPY SConstruct /root/SConstruct
+COPY godot-cpp /root/godot-cpp
+COPY misc/scripts /root/scripts
+COPY src /root/src
+COPY test /root/test

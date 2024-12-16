@@ -12,5 +12,9 @@
 basedir=`pwd`
 img_version="4.3-f40"
 docker build --file build-containers/Dockerfile.base --tag godot-fedora:${img_version} .
-docker build --file build-containers/Dockerfile.linux --tag gdterm-linux:${img_version} --build-arg img_version=${img_version} . 
-docker run -it --rm -v ${basedir}/misc/scripts:/root/scripts:ro -v ${basedir}/addons/bin:/root/addons/bin -v ${basedir}/godot-cpp:/root/godot-cpp:ro -v ${basedir}/src:/root/src:ro -v ${basedir}/SConstruct:/root/SConstruct:ro -w /root/ gdterm-linux:${img_version} bash scripts/build_linux.sh
+docker build --file build-containers/Dockerfile.linux --tag godot-linux:${img_version} --build-arg img_version=${img_version} . 
+docker build --file misc/Dockerfile.gdterm --tag gdterm-linux:${img_version} --build-arg gdterm_version="godot-linux:${img_version}" . 
+docker run -it --rm -v ${basedir}/addons/gdterm/bin:/root/addons/gdterm/bin -w /root/ gdterm-linux:${img_version} bash scripts/build_linux.sh x86_64
+docker run -it --rm -v ${basedir}/addons/gdterm/bin:/root/addons/gdterm/bin -w /root/ gdterm-linux:${img_version} bash scripts/build_linux.sh x86_32
+docker run -it --rm -v ${basedir}/addons/gdterm/bin:/root/addons/gdterm/bin -w /root/ gdterm-linux:${img_version} bash scripts/build_linux.sh arm64
+docker run -it --rm -v ${basedir}/addons/gdterm/bin:/root/addons/gdterm/bin -w /root/ gdterm-linux:${img_version} bash scripts/build_linux.sh arm32
