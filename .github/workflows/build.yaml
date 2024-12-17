@@ -3,3 +3,9 @@ name: Build Binaries
 on:
   workflow_dispatch:
 
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Say
+      - run: echo "Hello"
