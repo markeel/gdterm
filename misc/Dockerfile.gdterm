@@ -1,6 +1,15 @@
 ARG gdterm_version
 FROM ${gdterm_version}
 
+ARG uid
+ARG gid
+
+ENV OUTUID=${uid}
+ENV OUTGID=${gid}
+
+RUN groupadd -g ${gid} gdterm && \
+    useradd -m -u ${uid} -g ${gid} gdterm
+
 COPY SConstruct /root/SConstruct
 COPY godot-cpp /root/godot-cpp
 COPY misc/scripts /root/scripts

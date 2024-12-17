@@ -5,7 +5,7 @@
 #define NTDDI_VERSION 0x0A000006
 
 #include "pty_proxy.h"
-#include <Windows.h>
+#include <windows.h>
 #include <wincon.h>
 #include <mutex>
 #include <condition_variable>

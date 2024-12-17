@@ -1,7 +1,6 @@
-export SCONS="scons verbose=yes"
+export SCONS="scons"
 export OPTIONS=""
 
-echo "********** $1 *********************"
 if [ "$1" == "x86_64" ]
 then export PATH=${GODOT_SDK_LINUX_X86_64}/bin:${BASE_PATH}
 fi
@@ -18,5 +17,8 @@ if [ "$1" == "arm32" ]
 then export PATH=${GODOT_SDK_LINUX_ARM32}/bin:${BASE_PATH}
 fi
 
-echo "********** $PATH *********************"
-$SCONS platform=linux arch=$1 $OPTIONS
+$SCONS platform=linux arch=$1 $OPTIONS target=template_debug
+$SCONS platform=linux arch=$1 $OPTIONS target=template_release
+
+chown $OUTUID:$OUTGID addons/gdterm/bin/libgdterm.linux.template_debug.$1.so
+chown $OUTUID:$OUTGID addons/gdterm/bin/libgdterm.linux.template_release.$1.so
