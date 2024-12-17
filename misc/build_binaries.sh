@@ -17,11 +17,10 @@ docker build --file build-containers/Dockerfile.base --tag godot-fedora:${img_ve
 docker build --file build-containers/Dockerfile.linux --tag godot-linux:${img_version} --build-arg img_version=${img_version} . 
 docker build --file build-containers/Dockerfile.windows --tag godot-windows:${img_version} --build-arg img_version=${img_version} . 
 
-#docker build --file misc/Dockerfile.gdterm --tag gdterm-linux:${img_version} --build-arg gdterm_version="godot-linux:${img_version}" --build-arg uid="${uid}" --build-arg gid="${gid}" . 
-#docker run -it --rm -v ${basedir}/addons/gdterm/bin:/root/addons/gdterm/bin -w /root/ gdterm-linux:${img_version} bash scripts/build_linux.sh x86_64
-#docker run -it --rm -v ${basedir}/addons/gdterm/bin:/root/addons/gdterm/bin -w /root/ gdterm-linux:${img_version} bash scripts/build_linux.sh arm64
+docker build --file misc/Dockerfile.gdterm --tag gdterm-linux:${img_version} --build-arg gdterm_version="godot-linux:${img_version}" --build-arg uid="${uid}" --build-arg gid="${gid}" . 
+docker run -it --rm -v ${basedir}/addons/gdterm/bin:/root/addons/gdterm/bin -w /root/ gdterm-linux:${img_version} bash scripts/build_linux.sh x86_64
+docker run -it --rm -v ${basedir}/addons/gdterm/bin:/root/addons/gdterm/bin -w /root/ gdterm-linux:${img_version} bash scripts/build_linux.sh arm64
  
 docker build --file misc/Dockerfile.gdterm --tag gdterm-windows:${img_version} --build-arg gdterm_version="godot-windows:${img_version}" --build-arg uid=${uid} --build-arg gid=${gid} . 
 docker run -it --rm -v ${basedir}/addons/gdterm/bin:/root/addons/gdterm/bin -w /root/ gdterm-windows:${img_version} bash scripts/build_windows.sh x86_64
-#docker run -it --rm -v ${basedir}/addons/gdterm/bin:/root/addons/gdterm/bin -w /root/ gdterm-windows:${img_version} bash scripts/build_windows.sh arm64  
 
