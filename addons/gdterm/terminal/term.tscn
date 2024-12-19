@@ -45,13 +45,15 @@ custom_minimum_size = Vector2(20, 0)
 layout_mode = 2
 size_flags_horizontal = 1
 mouse_filter = 1
-max_value = 5.0
+max_value = 48.0
 step = 1.0
-page = 5.0
+page = 24.0
+value = 24.0
 
 [connection signal="visibility_changed" from="." to="." method="_on_visibility_changed"]
 [connection signal="id_pressed" from="menu" to="." method="_on_menu_id_pressed"]
 [connection signal="bell_request" from="GDTerm" to="." method="_on_gd_term_bell_request"]
 [connection signal="inactive" from="GDTerm" to="." method="_on_gd_term_inactive"]
 [connection signal="scrollback_changed" from="GDTerm" to="." method="_on_gd_term_scrollback_changed"]
+[connection signal="tree_entered" from="GDTerm" to="." method="_on_gd_term_tree_entered"]
 [connection signal="value_changed" from="scrollbar" to="." method="_on_scrollbar_value_changed"]

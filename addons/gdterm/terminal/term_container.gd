@@ -107,14 +107,17 @@ func _on_close(node):
 	var parent = node.get_parent()
 	if parent != self:
 		var grandparent = parent.get_parent()
+		var parent_idx = parent.get_index()
 		var child1 = parent.get_child(0)
 		var child2 = parent.get_child(1)
 		if child1 == node:
 			parent.remove_child(child2)
 			grandparent.remove_child(parent)
 			grandparent.add_child(child2)
+			grandparent.move_child(child2, parent_idx)
 		elif child2 == node:
 			parent.remove_child(child1)
 			grandparent.remove_child(parent)
 			grandparent.add_child(child1)
-	node.queue_free()
+			grandparent.move_child(child1, parent_idx)
+		parent.queue_free()

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://addons/gdterm/terminal/term_container.gd" id="1_ptxgd"]
 [ext_resource type="PackedScene" uid="uid://b62ioxhftvwg7" path="res://addons/gdterm/terminal/term.tscn" id="3_u81lm"]
-[ext_resource type="AudioStream" uid="uid://df700enlvxkie" path="res://addons/gdterm/audio/bell.mp3" id="5_8xiy1"]
+[ext_resource type="AudioStream" uid="uid://dxb1sddgekrg5" path="res://addons/gdterm/audio/bell.mp3" id="5_8xiy1"]
 
 [node name="main" type="PanelContainer"]
 anchors_preset = 15

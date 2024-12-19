@@ -3,6 +3,7 @@ extends HBoxContainer
 
 var _restart = false
 var _id = 0
+var _gd_term_changing = false
 
 signal bell
 signal new_above
@@ -35,14 +36,17 @@ func _gui_input(e : InputEvent):
 					$scrollbar.value += 1
 
 func _on_gd_term_scrollback_changed() -> void:
+	_gd_term_changing = true
 	$scrollbar.max_value = $GDTerm.get_num_scrollback_lines() + $GDTerm.get_num_screen_lines()
-	$scrollbar.page = $GDTerm.get_num_screen_lines()
 	$scrollbar.value = $GDTerm.get_scroll_pos()
+	$scrollbar.page = $GDTerm.get_num_screen_lines()
+	_gd_term_changing = false
 
 func _on_scrollbar_value_changed(value: float) -> void:
-	var row := roundi(value)
-	if row != $GDTerm.get_scroll_pos():
-		$GDTerm.set_scroll_pos(row)
+	if not _gd_term_changing:
+		var row := roundi(value)
+		if row != $GDTerm.get_scroll_pos():
+			$GDTerm.set_scroll_pos(row)
 
 func _on_gd_term_bell_request() -> void:
 	bell.emit()
@@ -80,4 +84,10 @@ func _do_restart():
 		$GDTerm.start()
 
 func _on_visibility_changed() -> void:
-	$GDTerm.start()
+	if visible:
+		if $GDTerm.is_inside_tree():
+			$GDTerm.start()
+
+func _on_gd_term_tree_entered() -> void:
+	if visible:
+		$GDTerm.start()

@@ -1,13 +1,8 @@
 
-#include "poller.h"
 #include "pty_proxy.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <unistd.h>
-#include <stdlib.h>
-#include <pty.h>
-#include <sys/ioctl.h>
 
 extern "C" {
 	#include <libtmt/tmt.h>
@@ -17,8 +12,13 @@ extern "C" {
 		int total = 0;
 		for (int i=start; i<end; i++) {
 			mbstate_t state;
+			size_t len;
 			memset(&state, 0, sizeof(mbstate_t));
-            int len = wcrtomb(pos, chars[i].c, &state);
+#ifdef USE_WCRTOMB_S
+            wcrtomb_s(&len, pos, end-total, chars[i].c, &state);
+#else
+            len = wcrtomb(pos, chars[i].c, &state);
+#endif
 		    if (len > 0) {
 			   pos += len;
 			   total += len;
@@ -79,11 +79,12 @@ extern "C" {
 
 	int add_glyph_chars(int char_start_idx, int cidx, TMTLINE * line, PtyProxy * proxy) {
 		int maxchar = MB_CUR_MAX * (cidx - char_start_idx);
-		char buffer[maxchar];
+		char *buffer = (char *)malloc(maxchar);
 		int numchars = fill_chars(buffer, line->chars, char_start_idx, cidx);
 		if (numchars > 0) {
-			proxy->screen_add_glyph(buffer, numchars);
+			proxy->_screen_add_glyph(buffer, numchars);
 		}
+		free(buffer); 
 		return cidx;
 	}
 
@@ -99,50 +100,50 @@ extern "C" {
 			tmt_color_t bg = TMT_COLOR_DEFAULT;
 			TMTLINE * line = screen->lines[lidx];
 			if (line->dirty) {
-				proxy->screen_set_row(lidx);
+				proxy->_screen_set_row(lidx);
 				int char_start_idx = 0;
 				for (int cidx=0; cidx<screen->ncol; cidx++) {
 					char_start_idx = add_glyph_chars(char_start_idx, cidx, line, proxy);
 					if (line->chars[cidx].a.bold != bold) {
 						bold = line->chars[cidx].a.bold;
-						if (bold) { proxy->screen_add_tag(LineTag::BOLD); } else { proxy->screen_remove_tag(LineTag::BOLD); }
+						if (bold) { proxy->_screen_add_tag(LineTag::BOLD); } else { proxy->_screen_remove_tag(LineTag::BOLD); }
 					}
 					if (line->chars[cidx].a.dim != dim) {
 						dim = line->chars[cidx].a.dim;
-						if (dim) { proxy->screen_add_tag(LineTag::DIM); } else { proxy->screen_remove_tag(LineTag::DIM); }
+						if (dim) { proxy->_screen_add_tag(LineTag::DIM); } else { proxy->_screen_remove_tag(LineTag::DIM); }
 					}
 					if (line->chars[cidx].a.underline != underline) {
 						underline = line->chars[cidx].a.underline;
-						if (underline) { proxy->screen_add_tag(LineTag::UNDERLINE); } else { proxy->screen_remove_tag(LineTag::UNDERLINE); }
+						if (underline) { proxy->_screen_add_tag(LineTag::UNDERLINE); } else { proxy->_screen_remove_tag(LineTag::UNDERLINE); }
 					}
 					if (line->chars[cidx].a.blink != blink) {
 						blink = line->chars[cidx].a.blink;
-						if (blink) { proxy->screen_add_tag(LineTag::BLINK); } else { proxy->screen_remove_tag(LineTag::BLINK); }
+						if (blink) { proxy->_screen_add_tag(LineTag::BLINK); } else { proxy->_screen_remove_tag(LineTag::BLINK); }
 					}
 					if (line->chars[cidx].a.reverse != reverse) {
 						reverse = line->chars[cidx].a.reverse;
-						if (reverse) { proxy->screen_add_tag(LineTag::REVERSE); } else { proxy->screen_remove_tag(LineTag::REVERSE); }
+						if (reverse) { proxy->_screen_add_tag(LineTag::REVERSE); } else { proxy->_screen_remove_tag(LineTag::REVERSE); }
 					}
 					if (line->chars[cidx].a.invisible != invisible) {
 						invisible = line->chars[cidx].a.invisible;
-						if (invisible) { proxy->screen_add_tag(LineTag::INVISIBLE); } else { proxy->screen_remove_tag(LineTag::INVISIBLE); }
+						if (invisible) { proxy->_screen_add_tag(LineTag::INVISIBLE); } else { proxy->_screen_remove_tag(LineTag::INVISIBLE); }
 					}
 					if (line->chars[cidx].a.fg != fg) {
 						if (fg >= TMT_COLOR_BLACK) {
-							proxy->screen_remove_tag(get_fg_color_tag(fg));
+							proxy->_screen_remove_tag(get_fg_color_tag(fg));
 						}
 						fg = line->chars[cidx].a.fg;
 						if (fg >= TMT_COLOR_BLACK) {
-							proxy->screen_add_tag(get_fg_color_tag(fg));
+							proxy->_screen_add_tag(get_fg_color_tag(fg));
 						}
 					}
 					if (line->chars[cidx].a.bg != bg) {
 						if (bg >= TMT_COLOR_BLACK) {
-							proxy->screen_remove_tag(get_bg_color_tag(bg));
+							proxy->_screen_remove_tag(get_bg_color_tag(bg));
 						}
 						bg = line->chars[cidx].a.bg;
 						if (bg >= TMT_COLOR_BLACK) {
-							proxy->screen_add_tag(get_bg_color_tag(bg));
+							proxy->_screen_add_tag(get_bg_color_tag(bg));
 						}
 					}
 				}
@@ -157,16 +158,16 @@ extern "C" {
 			case TMT_MSG_MOVED:
 			{
 				TMTPOINT * point = (TMTPOINT *)r;
-				proxy->update_cursor(point->r, point->c);
+				proxy->_update_cursor(point->r, point->c);
 				break;
 			}
 			case TMT_MSG_UPDATE:
 			{
-				proxy->screen_begin();
+				proxy->_screen_begin();
 				TMTSCREEN * screen = (TMTSCREEN *)r;
 				handle_screen(proxy, screen);
 				tmt_clean(v);
-				proxy->screen_done();
+				proxy->_screen_done();
 				break;
 			}
 			case TMT_MSG_SCROLL:
@@ -179,10 +180,10 @@ extern "C" {
 					}
 					scroll_size += 1;
 				}
-				proxy->scroll_begin(scroll_size);
+				proxy->_scroll_begin(scroll_size);
 				handle_screen(proxy, screen);
 				tmt_clean_scroll(v);
-				proxy->scroll_done();
+				proxy->_scroll_done();
 				break;
 			}
 			case TMT_MSG_ANSWER:
@@ -193,16 +194,16 @@ extern "C" {
 			}
 			case TMT_MSG_BELL:
 			{
-				proxy->play_bell();
+				proxy->_play_bell();
 				break;
 			}
 			case TMT_MSG_CURSOR:
 			{
 				const char * condition = (const char *)r;
 				if (strcmp(condition, "t") == 0) {
-					proxy->show_cursor(true);
+					proxy->_show_cursor(true);
 				} else {
-					proxy->show_cursor(false);
+					proxy->_show_cursor(false);
 				}
 				break;
 			}
@@ -210,90 +211,111 @@ extern "C" {
 	}
 }
 
-PtyProxy::PtyProxy(TermRenderer * renderer) {
-	_renderer = renderer;
+PtyProxy::PtyProxy() {
+	_renderer = nullptr;
 	_num_rows = 24;
 	_num_cols = 80;
 	_tmt = tmt_open(_num_rows, _num_cols, tmt_callback, this, NULL);
-	_init_pty();
 }
 
 PtyProxy::~PtyProxy() {
 	tmt_close(_tmt);
-	if (_poller != nullptr) {
-		delete _poller;
-		_poller = nullptr;
+}
+
+void
+PtyProxy::_handle_from_pty(unsigned char * data, int data_len) {
+	if (_renderer != nullptr) {
+		_renderer->log_vt_handler_input(data, data_len);
 	}
-}
-
-/**
- * This is invoked on the poller thread, so it is safe to manipulate the TMT data
- * structure and the file descriptor for the pseudo terminal 
- */
-void
-PtyProxy::apply_size() {
-	struct winsize size;
-	size.ws_col = _num_cols;
-	size.ws_row = _num_rows;
-	size.ws_xpixel = 0;
-	size.ws_ypixel = 0;
-	ioctl(_pty_fd, TIOCSWINSZ, &size);
-	tmt_resize(_tmt, _num_rows, _num_cols);
-	_renderer->resize_complete();
-}
-
-void
-PtyProxy::handle(unsigned char * data, int data_len) {
 	tmt_write(_tmt, (const char *)data, data_len);
 }
 
 void
-PtyProxy::exited() {
+PtyProxy::_handle_pty_exited() {
 	if (_renderer != nullptr) {
 		_renderer->exited();
 	}
 }
 
 void
-PtyProxy::_init_pty() {
-	struct winsize wsize;
-
-	wsize.ws_col = _num_cols;
-	wsize.ws_row = _num_rows;
-	wsize.ws_xpixel = 0;
-	wsize.ws_ypixel = 0;
-
-	pid_t pid = forkpty(&_pty_fd, nullptr, nullptr, &wsize); 
-	if (!pid) {
-		static char termstr[] = "TERM=ansi";
-		putenv(termstr);
-		execl(std::getenv("SHELL"), std::getenv("SHELL"), "-l", "-i", nullptr);
-	}
-	fcntl(_pty_fd, F_SETFL, fcntl(_pty_fd, F_GETFL) | O_NONBLOCK);
-
-	_poller = new Poller(_pty_fd, pid, this);
-	_poller->start();
-}
-
-int
-PtyProxy::send_string(const char * data) {
-	return _poller->write_cmd(Poller::CMD_SEND, (const unsigned char *)data, strlen(data));
-}
-
-int
-PtyProxy::available_to_send() {
-	if (_poller != nullptr) {
-		return _poller->available_to_send();
-	}
-	return 0;
+PtyProxy::_apply_resize() {
+	tmt_resize(_tmt, _num_rows, _num_cols);
+	_renderer->resize_complete();
 }
 
 void
-PtyProxy::resize_screen(int nrows, int ncols) {
-	_num_rows = nrows;
-	_num_cols = ncols;
-	if (_poller != nullptr) {
-		_poller->write_cmd(Poller::CMD_RESIZE, nullptr, 0);
+PtyProxy::_screen_begin() {
+	if (_renderer != nullptr) {
+		_renderer->screen_begin();
 	}
 }
 
+void
+PtyProxy::_screen_set_row(int row) {
+	if (_renderer != nullptr) {
+		_renderer->screen_set_row(row);
+	}
+}
+
+void 
+PtyProxy::_screen_add_glyph(char * buf, int len) {
+	if (_renderer != nullptr) {
+		_renderer->screen_add_glyph(buf, len);
+	}
+}
+
+void 
+PtyProxy::_screen_add_tag(LineTag tag) {
+	if (_renderer != nullptr) {
+		_renderer->screen_add_tag(tag);
+	}
+}
+
+void 
+PtyProxy::_screen_remove_tag(LineTag tag) {
+	if (_renderer != nullptr) {
+		_renderer->screen_remove_tag(tag);
+	}
+}
+
+void
+PtyProxy::_screen_done() {
+	if (_renderer != nullptr) {
+		_renderer->screen_done();
+	}
+}
+
+void
+PtyProxy::_update_cursor(int row, int col) {
+	if (_renderer != nullptr) {
+		_renderer->update_cursor(row, col);
+	}
+}
+
+void 
+PtyProxy::_play_bell() {
+	if (_renderer != nullptr) {
+		_renderer->play_bell();
+	}
+}
+
+void 
+PtyProxy::_show_cursor(bool flag) {
+	if (_renderer != nullptr) {
+		_renderer->show_cursor(flag);
+	}
+}
+
+void
+PtyProxy::_scroll_begin(int size) {
+	if (_renderer != nullptr) {
+		_renderer->scroll_begin(size);
+	}
+}
+
+void
+PtyProxy::_scroll_done() {
+	if (_renderer != nullptr) {
+		_renderer->scroll_done();
+	}
+}
