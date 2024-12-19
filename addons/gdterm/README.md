@@ -19,7 +19,7 @@ It provides the following features:
 * Works fine with typical command line tools: vi, top, tail
 
 The following are its current limitations
-* Only provided for Linux (Windows and Mac in the future)
+* Only provided for Linux and Windows (Mac in the future)
 
 ## Getting Started
 
