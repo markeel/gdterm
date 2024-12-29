@@ -2,22 +2,117 @@
 extends EditorPlugin
 
 const MainPanel = preload("res://addons/gdterm/terminal/main.tscn")
+const InactivePanel = preload("res://addons/gdterm/terminal/inactive.tscn")
+const BottomPanel = preload("res://addons/gdterm/terminal/main.tscn")
 
-var main_panel_instance
+var main_panel_instance = null
+var bottom_panel_instance = null
+
+var current_theme = null
+var current_layout = null
+
+const THEME_EDITOR : int = 0
+const THEME_DARK   : int = 1
+const THEME_LIGHT  : int = 2
+
+var theme_property_info = {
+	"name": "gdterm/theme",
+	"type": TYPE_INT,
+	"hint": PROPERTY_HINT_ENUM,
+	"hint_string": "editor,dark,light"
+}
+
+const LAYOUT_MAIN   : int = 0
+const LAYOUT_BOTTOM : int = 1
+const LAYOUT_BOTH   : int = 2
+
+var layout_property_info = {
+	"name": "gdterm/layout",
+	"type": TYPE_INT,
+	"hint": PROPERTY_HINT_ENUM,
+	"hint_string": "main,bottom,both"
+}
+
+func _on_settings_changed():
+	var settings = EditorInterface.get_editor_settings()
+	var theme = settings.get_setting("gdterm/theme")
+	var layout = settings.get_setting("gdterm/layout")
+	_apply_theme(theme)
+	_apply_layout(layout)
+
+func _apply_theme(theme):
+	print("current theme: %s" % current_theme)
+	if current_theme != theme:
+		print("applying new theme: %s" % theme)
+
+func _apply_layout(layout):
+	if current_layout != layout:
+		if layout == LAYOUT_MAIN or layout == LAYOUT_BOTH:
+			var show_main = false
+			if current_layout == LAYOUT_BOTTOM:
+				if main_panel_instance != null:
+					show_main = main_panel_instance.visible
+					EditorInterface.get_editor_main_screen().remove_child(main_panel_instance)
+					main_panel_instance.queue_free()
+					main_panel_instance = null
+				else:
+					printerr("Must restart editor using Project->Reload Current Project for Terminal to be displayed in the main editor window")
+					return
+			if main_panel_instance == null:
+				main_panel_instance = MainPanel.instantiate()
+				main_panel_instance.visible = show_main
+				EditorInterface.get_editor_main_screen().add_child(main_panel_instance)
+		if layout == LAYOUT_BOTTOM or layout == LAYOUT_BOTH:
+			if bottom_panel_instance == null:
+				bottom_panel_instance = BottomPanel.instantiate()
+				add_control_to_bottom_panel(bottom_panel_instance, "Terminal")
+		if layout == LAYOUT_MAIN:
+			if bottom_panel_instance != null:
+				remove_control_from_bottom_panel(bottom_panel_instance)
+				bottom_panel_instance.queue_free()
+				bottom_panel_instance = null
+		if layout == LAYOUT_BOTTOM:
+			if main_panel_instance != null:
+				EditorInterface.get_editor_main_screen().remove_child(main_panel_instance)
+				main_panel_instance.queue_free()
+				main_panel_instance = InactivePanel.instantiate()
+				EditorInterface.get_editor_main_screen().add_child(main_panel_instance)
+		current_layout = layout
 
 func _enter_tree() -> void:
-	main_panel_instance = MainPanel.instantiate()
-	# Add the main panel to the editor's main viewport.
-	EditorInterface.get_editor_main_screen().add_child(main_panel_instance)
+	var settings = EditorInterface.get_editor_settings()
+	settings.add_property_info(theme_property_info)
+	settings.add_property_info(layout_property_info)
+	settings.settings_changed.connect(_on_settings_changed)
+	
+	var theme = settings.get_setting("gdterm/theme")
+	if theme == null:
+		settings.set_setting("gdterm/theme", 0)
+		theme = settings.get_setting("gdterm/theme")
+	_apply_theme(theme)
+	
+	var layout = settings.get_setting("gdterm/layout")
+	if layout == null:
+		settings.set_setting("gdterm/layout", 0)
+		layout = settings.get_setting("gdterm/layout")
+	_apply_layout(layout)
+	
 	# Hide the main panel. Very much required.
 	_make_visible(false)
 
 func _exit_tree() -> void:
 	if main_panel_instance:
 		main_panel_instance.queue_free()
+	if bottom_panel_instance:
+		bottom_panel_instance.queue_free()
 
 func _has_main_screen():
-	return true
+	var settings = EditorInterface.get_editor_settings()
+	var layout = settings.get_setting("gdterm/layout")
+	if layout == LAYOUT_MAIN or layout == LAYOUT_BOTH:
+		return true
+	else:
+		return false
 
 func _make_visible(visible):
 	if main_panel_instance:
