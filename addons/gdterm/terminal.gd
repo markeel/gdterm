@@ -35,8 +35,13 @@ var layout_property_info = {
 
 func _on_settings_changed():
 	var settings = EditorInterface.get_editor_settings()
-	var theme = settings.get_setting("gdterm/theme")
-	var layout = settings.get_setting("gdterm/layout")
+	
+	var theme = THEME_EDITOR
+	if settings.has_setting("gdterm/theme"):
+		theme = settings.get_setting("gdterm/theme")
+	var layout = LAYOUT_MAIN
+	if settings.has_setting("gdterm/layout"):
+		layout = settings.get_setting("gdterm/layout")
 	_apply_theme(theme)
 	_apply_layout(layout)
 
@@ -81,21 +86,27 @@ func _apply_layout(layout):
 
 func _enter_tree() -> void:
 	var settings = EditorInterface.get_editor_settings()
-	settings.add_property_info(theme_property_info)
-	settings.add_property_info(layout_property_info)
-	settings.settings_changed.connect(_on_settings_changed)
 	
-	var theme = settings.get_setting("gdterm/theme")
-	if theme == null:
-		settings.set_setting("gdterm/theme", 0)
+	var theme = THEME_EDITOR
+	if settings.has_setting("gdterm/theme"):
+		theme = settings.get_setting("gdterm/theme")
+	else:
+		settings.set_setting("gdterm/theme", theme)
 		theme = settings.get_setting("gdterm/theme")
 	_apply_theme(theme)
 	
-	var layout = settings.get_setting("gdterm/layout")
-	if layout == null:
-		settings.set_setting("gdterm/layout", 0)
+	var layout = LAYOUT_MAIN
+	if settings.has_setting("gdterm/layout"):
+		layout = settings.get_setting("gdterm/layout")
+	else:
+		settings.set_setting("gdterm/layout", layout)
 		layout = settings.get_setting("gdterm/layout")
 	_apply_layout(layout)
+
+	# Make sure shows as enum
+	settings.add_property_info(theme_property_info)
+	settings.add_property_info(layout_property_info)
+	settings.settings_changed.connect(_on_settings_changed)
 	
 	# Hide the main panel. Very much required.
 	_make_visible(false)
@@ -108,11 +119,15 @@ func _exit_tree() -> void:
 
 func _has_main_screen():
 	var settings = EditorInterface.get_editor_settings()
-	var layout = settings.get_setting("gdterm/layout")
-	if layout == LAYOUT_MAIN or layout == LAYOUT_BOTH:
-		return true
+	if settings.has_setting("gdterm/layout"):
+		var layout = settings.get_setting("gdterm/layout")
+		if layout == LAYOUT_MAIN or layout == LAYOUT_BOTH:
+			return true
+		else:
+			return false
 	else:
-		return false
+		settings.set_setting("gdterm/layout", 0)
+		return true
 
 func _make_visible(visible):
 	if main_panel_instance:
