@@ -3,6 +3,20 @@ extends PanelContainer
 
 var _id : int = 0
 
+func apply_themes():
+	_apply_child_themes(self)
+
+func _apply_child_themes(parent):
+	for child in parent.get_children():
+		if child is VSplitContainer:
+			_apply_child_themes(child)
+		elif child is HSplitContainer:
+			_apply_child_themes(child)
+		elif child is AudioStreamPlayer:
+			pass
+		else:
+			child.apply_theme()
+
 func _ready():
 	$term.set_id(_next_id())
 	$term.bell.connect(_on_bell)

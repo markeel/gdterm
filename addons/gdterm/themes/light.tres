@@ -1,0 +1,13 @@
+[gd_resource type="Theme" format=3 uid="uid://dg6omohogcvmn"]
+
+[resource]
+GDTerm/colors/background = Color(0.933333, 0.933333, 0.933333, 1)
+GDTerm/colors/black = Color(0, 0, 0, 1)
+GDTerm/colors/blue = Color(0, 0, 0.733333, 1)
+GDTerm/colors/cyan = Color(0, 0.733333, 0.733333, 1)
+GDTerm/colors/foreground = Color(0.0666667, 0.0666667, 0.0666667, 1)
+GDTerm/colors/green = Color(0, 0.733333, 0, 1)
+GDTerm/colors/magenta = Color(0.733333, 0, 0.733333, 1)
+GDTerm/colors/red = Color(0.733333, 0, 0, 1)
+GDTerm/colors/white = Color(0.733333, 0.733333, 0.733333, 1)
+GDTerm/colors/yellow = Color(0.733333, 0.733333, 0, 1)
