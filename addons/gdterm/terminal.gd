@@ -10,6 +10,7 @@ var bottom_panel_instance = null
 
 var current_theme = null
 var current_layout = null
+var active_theme = null
 
 const THEME_EDITOR : int = 0
 const THEME_DARK   : int = 1
@@ -46,10 +47,35 @@ func _on_settings_changed():
 	_apply_layout(layout)
 
 func _apply_theme(theme):
-	print("current theme: %s" % current_theme)
 	if current_theme != theme:
-		print("applying new theme: %s" % theme)
-
+		if theme == THEME_EDITOR:
+			var editor_theme = Theme.new()
+			var settings = EditorInterface.get_editor_settings()
+			var background = settings.get_setting("text_editor/theme/highlighting/background_color")
+			var foreground = settings.get_setting("text_editor/theme/highlighting/text_color")
+			editor_theme.set_theme_item(Theme.DATA_TYPE_COLOR, "background", "GDTerm", background)
+			editor_theme.set_theme_item(Theme.DATA_TYPE_COLOR, "foreground", "GDTerm", foreground)
+			editor_theme.set_theme_item(Theme.DATA_TYPE_COLOR, "black", "GDTerm", Color.BLACK)
+			editor_theme.set_theme_item(Theme.DATA_TYPE_COLOR, "white", "GDTerm", Color.WHITE)
+			editor_theme.set_theme_item(Theme.DATA_TYPE_COLOR, "red", "GDTerm", Color.RED)
+			editor_theme.set_theme_item(Theme.DATA_TYPE_COLOR, "green", "GDTerm", Color.GREEN)
+			editor_theme.set_theme_item(Theme.DATA_TYPE_COLOR, "blue", "GDTerm", Color.CORNFLOWER_BLUE)
+			editor_theme.set_theme_item(Theme.DATA_TYPE_COLOR, "yellow", "GDTerm", Color.YELLOW)
+			editor_theme.set_theme_item(Theme.DATA_TYPE_COLOR, "cyan", "GDTerm", Color.CYAN)
+			editor_theme.set_theme_item(Theme.DATA_TYPE_COLOR, "magenta", "GDTerm", Color.MAGENTA)
+			active_theme = editor_theme
+		elif theme == THEME_LIGHT:
+			active_theme = preload("res://addons/gdterm/themes/light.tres")
+		elif theme == THEME_DARK:
+			active_theme = preload("res://addons/gdterm/themes/dark.tres")
+		if main_panel_instance != null:
+			main_panel_instance.set_theme(active_theme)
+			main_panel_instance.theme_changed()
+		if bottom_panel_instance != null:
+			bottom_panel_instance.set_theme(active_theme)
+			bottom_panel_instance.theme_changed()
+		current_theme = theme
+	
 func _apply_layout(layout):
 	if current_layout != layout:
 		if layout == LAYOUT_MAIN or layout == LAYOUT_BOTH:
@@ -65,11 +91,16 @@ func _apply_layout(layout):
 					return
 			if main_panel_instance == null:
 				main_panel_instance = MainPanel.instantiate()
+				if active_theme != null:
+					main_panel_instance.set_theme(active_theme)
 				main_panel_instance.visible = show_main
 				EditorInterface.get_editor_main_screen().add_child(main_panel_instance)
 		if layout == LAYOUT_BOTTOM or layout == LAYOUT_BOTH:
 			if bottom_panel_instance == null:
 				bottom_panel_instance = BottomPanel.instantiate()
+				if active_theme != null:
+					bottom_panel_instance.set_theme(active_theme)
+					bottom_panel_instance.theme_changed()
 				add_control_to_bottom_panel(bottom_panel_instance, "Terminal")
 		if layout == LAYOUT_MAIN:
 			if bottom_panel_instance != null:

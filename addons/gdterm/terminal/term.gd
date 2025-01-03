@@ -20,6 +20,19 @@ func _ready():
 	$scrollbar.page = $GDTerm.get_num_screen_lines()
 	$scrollbar.max_value = $GDTerm.get_num_scrollback_lines() + $GDTerm.get_num_screen_lines()
 	$scrollbar.value = $GDTerm.get_num_scrollback_lines()
+	apply_theme()
+
+func apply_theme():
+	if has_theme_color("background", "GDTerm"):  $GDTerm.background = get_theme_color("background", "GDTerm")
+	if has_theme_color("foreground", "GDTerm"): $GDTerm.foreground = get_theme_color("foreground", "GDTerm")
+	if has_theme_color("black", "GDTerm"):      $GDTerm.black      = get_theme_color("black", "GDTerm")
+	if has_theme_color("red", "GDTerm"):        $GDTerm.red        = get_theme_color("red", "GDTerm")
+	if has_theme_color("green", "GDTerm"):      $GDTerm.green      = get_theme_color("green", "GDTerm")
+	if has_theme_color("blue", "GDTerm"):       $GDTerm.blue       = get_theme_color("blue", "GDTerm")
+	if has_theme_color("cyan", "GDTerm"):       $GDTerm.cyan       = get_theme_color("cyan", "GDTerm")
+	if has_theme_color("yellow", "GDTerm"):     $GDTerm.yellow     = get_theme_color("yellow", "GDTerm")
+	if has_theme_color("magenta", "GDTerm"):    $GDTerm.magenta    = get_theme_color("magenta", "GDTerm")
+	if has_theme_color("white", "GDTerm"):      $GDTerm.white      = get_theme_color("white", "GDTerm")
 
 func _gui_input(e : InputEvent):
 	var me = e as InputEventMouseButton
