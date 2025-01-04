@@ -748,10 +748,14 @@ GDTerm::_gui_input(const Ref<InputEvent> & p_event) {
 				int mouse_col = mpos.x / _font_space_size.x;
 				if (!_selecting) {
 					if (_selection_active && !_is_in_selection(mouse_row+_scrollback_pos, mouse_col)) {
-						_selection_active = false;
-						_selecting = false;
-						_select_mode = SELECT_MODE_CHAR;
-						_select_tick = godot::Time::get_singleton()->get_ticks_msec();
+						if (!mbe->is_shift_pressed()) {
+							_selection_active = false;
+							_selecting = false;
+							_select_mode = SELECT_MODE_CHAR;
+							_select_start_row = _scrollback_pos + mouse_row;
+							_update_select_for_start_col(_select_start_row, mouse_col);
+							_select_tick = godot::Time::get_singleton()->get_ticks_msec();
+						}
 					} else {
 						uint64_t now = godot::Time::get_singleton()->get_ticks_msec();
 						uint64_t delta = now - _select_tick;
@@ -768,11 +772,11 @@ GDTerm::_gui_input(const Ref<InputEvent> & p_event) {
 							_selection_active = false;
 							_select_tick = godot::Time::get_singleton()->get_ticks_msec();
 						}
+						_select_start_row = _scrollback_pos + mouse_row;
+						_update_select_for_start_col(_select_start_row, mouse_col);
 					}
 				}
 				_selecting = true;
-				_select_start_row = _scrollback_pos + mouse_row;
-				_update_select_for_start_col(_select_start_row, mouse_col);
 				_select_end_row = _scrollback_pos + mouse_row;
 				_update_select_for_end_col(_select_end_row, mouse_col);
 				queue_redraw();
@@ -806,6 +810,23 @@ GDTerm::_gui_input(const Ref<InputEvent> & p_event) {
 			int mouse_col = mpos.x / _font_space_size.x;
 			_select_end_row = _scrollback_pos + mouse_row;
 			_update_select_for_end_col(_select_end_row, mouse_col);
+			if (mouse_row > _rows) {
+				if (_scrollback_pos < _scrollback.size()) {
+					_scrollback_pos += mouse_row - _rows;
+					if (_scrollback_pos >= _scrollback.size()) {
+						_scrollback_pos = _scrollback.size();
+					}
+					_notify_scrollback();
+				}
+			} else if (mouse_row < 0) {
+				if (_scrollback_pos > 0) {
+					_scrollback_pos += mouse_row;
+					if (_scrollback_pos < 0) {
+						_scrollback_pos = 0;
+					}
+					_notify_scrollback();
+				}
+			}
 			uint64_t now = godot::Time::get_singleton()->get_ticks_msec();
 			uint64_t delta = now - _select_tick;
 			if (delta >= CLICK_DELTA_TIME) {
