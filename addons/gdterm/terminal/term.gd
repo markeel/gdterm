@@ -51,8 +51,8 @@ func _gui_input(e : InputEvent):
 func _on_gd_term_scrollback_changed() -> void:
 	_gd_term_changing = true
 	$scrollbar.max_value = $GDTerm.get_num_scrollback_lines() + $GDTerm.get_num_screen_lines()
-	$scrollbar.value = $GDTerm.get_scroll_pos()
 	$scrollbar.page = $GDTerm.get_num_screen_lines()
+	$scrollbar.value = $GDTerm.get_scroll_pos()
 	_gd_term_changing = false
 
 func _on_scrollbar_value_changed(value: float) -> void:

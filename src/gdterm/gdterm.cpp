@@ -834,7 +834,6 @@ GDTerm::update_cursor(int row, int col) {
 	_pending_cursor_dirty = true;
 	_pending_cursor_row = row;
 	_pending_cursor_col = col;
-	//call_deferred("queue_redraw");
 }
 
 void 
@@ -938,8 +937,6 @@ GDTerm::screen_done() {
 	}
 	_pending_dirty = true;
 	_pending_state = STATE_SCREEN_DONE;
-
-	//call_deferred("queue_redraw");
 }
 
 bool
@@ -970,8 +967,6 @@ GDTerm::scroll_done() {
 	_pending_saved_scrollback.insert(_pending_saved_scrollback.end(), _pending_scrollback.begin(), _pending_scrollback.end());
 	_pending_dirty = true;
 	_pending_state = STATE_SCREEN_DONE;
-
-	//call_deferred("queue_redraw");
 }
 
 void
@@ -985,7 +980,6 @@ void
 GDTerm::resize_complete() {
 	const std::lock_guard<std::mutex> lock(_pending_mutex);
 	_pending_state = STATE_SCREEN_DONE;
-	//call_deferred("queue_redraw");
 }
 
 bool
@@ -1176,9 +1170,6 @@ GDTerm::_make_pending_active() {
 	}
 	if (_pending_dirty) {
 		_screen_lines = _pending_screen_lines;
-		if (_scrollback_pos == _scrollback.size()) {
-			_scrollback_pos += _pending_saved_scrollback.size();
-		}
 		if (_pending_saved_scrollback.size() > 0) {
 			bool at_end = _scrollback_pos == _scrollback.size();
 			_scrollback.insert(_scrollback.end(), _pending_saved_scrollback.begin(), _pending_saved_scrollback.end());
