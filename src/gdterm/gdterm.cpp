@@ -809,6 +809,12 @@ GDTerm::_gui_input(const Ref<InputEvent> & p_event) {
 			int mouse_row = mpos.y / _font_space_size.y;
 			int mouse_col = mpos.x / _font_space_size.x;
 			_select_end_row = _scrollback_pos + mouse_row;
+			if (_select_end_row < 0) {
+				_select_end_row = 0;
+			}
+			if (_select_end_row >= (_screen_lines.size() + _scrollback.size())) {
+				_select_end_row = _screen_lines.size() + _scrollback.size() - 1;
+			}
 			_update_select_for_end_col(_select_end_row, mouse_col);
 			if (mouse_row > _rows) {
 				if (_scrollback_pos < _scrollback.size()) {
