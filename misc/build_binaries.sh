@@ -10,7 +10,7 @@
 # container definitions can be re-used as is.
 #
 basedir=`pwd`
-img_version="4.3-f40"
+img_version="4.3-f41"
 uid=`id -u`
 gid=`id -g`
 docker build --file build-containers/Dockerfile.base --tag godot-fedora:${img_version} . || exit 1
