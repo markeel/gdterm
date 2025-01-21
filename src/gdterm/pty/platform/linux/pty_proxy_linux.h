@@ -7,6 +7,7 @@
 class PtyProxyLinux : public PtyProxy, PollHandler {
 public:
 	PtyProxyLinux();
+	PtyProxyLinux(const std::wstring &command);
 	virtual ~PtyProxyLinux();
 
 	int send_string(const char * data) override;
@@ -21,6 +22,7 @@ public:
 private:
 	Poller * _poller;
 	int _pty_fd;
+    const std::wstring _command;
 
 	void _init_pty();
 };

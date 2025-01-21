@@ -34,6 +34,13 @@ var layout_property_info = {
 	"hint_string": "main,bottom,both"
 }
 
+var command_property_info = {
+	"name": "gdterm/layout",
+	"type": TYPE_STRING,
+	"hint": PROPERTY_HINT_GLOBAL_FILE,
+	"hint_string": ""
+}
+
 func _on_settings_changed():
 	var settings = EditorInterface.get_editor_settings()
 	
@@ -133,10 +140,22 @@ func _enter_tree() -> void:
 		settings.set_setting("gdterm/layout", layout)
 		layout = settings.get_setting("gdterm/layout")
 	_apply_layout(layout)
-
+	
+	var command = ""
+	if settings.has_setting("gdterm/command"):
+		command = settings.get_setting("gdterm/command")
+	else:
+		settings.set_setting("gdterm/layout", layout)
+		command = settings.get_setting("gdterm/command")
+	if main_panel_instance != null:
+		main_panel_instance.command = command
+	if bottom_panel_instance != null:
+		bottom_panel_instance.command = command
+	
 	# Make sure shows as enum
 	settings.add_property_info(theme_property_info)
 	settings.add_property_info(layout_property_info)
+	settings.add_property_info(command_property_info)
 	settings.settings_changed.connect(_on_settings_changed)
 	
 	# Hide the main panel. Very much required.

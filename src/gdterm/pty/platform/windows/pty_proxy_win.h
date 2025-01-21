@@ -18,6 +18,7 @@ static const int TO_BUFFER_MAX_SIZE = 1024;
 class PtyProxyWin : public PtyProxy {
 public:
 	PtyProxyWin();
+	PtyProxyWin(const std::wstring &command);
 	virtual ~PtyProxyWin();
 
 	virtual int send_string(const char * data);
@@ -45,6 +46,7 @@ private:
 	HANDLE                  _to_thread;
 	unsigned char           _to_buffer[TO_BUFFER_MAX_SIZE];
 	int                     _to_buffer_pos;
+	std::wstring            _command;
 
 	HANDLE                  _from_thread;
 

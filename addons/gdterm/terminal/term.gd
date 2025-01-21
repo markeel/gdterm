@@ -4,6 +4,7 @@ extends HBoxContainer
 var _restart = false
 var _id = 0
 var _gd_term_changing = false
+var command = ""
 
 signal bell
 signal new_above
@@ -20,6 +21,7 @@ func _ready():
 	$scrollbar.page = $GDTerm.get_num_screen_lines()
 	$scrollbar.max_value = $GDTerm.get_num_scrollback_lines() + $GDTerm.get_num_screen_lines()
 	$scrollbar.value = $GDTerm.get_num_scrollback_lines()
+	$GDTerm.command = command
 	apply_theme()
 
 func apply_theme():

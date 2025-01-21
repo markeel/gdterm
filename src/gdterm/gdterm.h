@@ -50,6 +50,7 @@ namespace godot {
 		Color      foreground;
 		Color      background;
 		String     vt_handler_log_path;
+		String     command;
 
 		PtyProxy * _proxy;
 
@@ -161,6 +162,9 @@ namespace godot {
 
 		void set_vt_handler_log_path(String c);
 		String get_vt_handler_log_path() const;
+
+		void set_command(String c);
+		String get_command() const;
 
 		void clear();
 		void start();

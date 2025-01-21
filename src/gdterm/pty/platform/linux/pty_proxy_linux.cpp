@@ -8,6 +8,19 @@
 #include <unistd.h>
 
 PtyProxyLinux::PtyProxyLinux() {
+  	PtyProxyLinux(L"");
+}
+
+PtyProxyLinux::PtyProxyLinux(const std::wstring &command) {
+    if command == nullptr {
+        const size_t length = 256
+        char * shell = (char *)malloc(length * sizeof(char));
+        size_t actual_length;
+    	std::getenv_s(actual_length, shell, length, "SHELL")
+        command.append(std::wstring(shell));
+        delete(shell);
+    }
+ 	_command = command;
 	_init_pty();
 }
 
@@ -58,8 +71,11 @@ PtyProxyLinux::_init_pty() {
 	pid_t pid = forkpty(&_pty_fd, nullptr, nullptr, &wsize); 
 	if (!pid) {
 		static char termstr[] = "TERM=ansi";
-		putenv(termstr);
-		execl(std::getenv("SHELL"), std::getenv("SHELL"), "-l", "-i", nullptr);
+		_putenv(termstr);
+		std::wstring command = std::wstring(_command);
+		command.push_back(L'\0');
+		auto c_command = command.c_str();
+		_execl(c_command, c_command, "-l", "-i", nullptr);
 	}
 	fcntl(_pty_fd, F_SETFL, fcntl(_pty_fd, F_GETFL) | O_NONBLOCK);
 

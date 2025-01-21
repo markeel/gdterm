@@ -21,6 +21,15 @@ unsigned __stdcall RunFromThread(void * arg) {
 }
 
 PtyProxyWin::PtyProxyWin() {
+  	PtyProxyWin(L"cmd");
+}
+
+PtyProxyWin::PtyProxyWin(const std::wstring &command) {
+  	if (command.empty()) {
+        _command.append(L"cmd");
+    } else {
+		_command = command;
+    }
 	_pty_console = { INVALID_HANDLE_VALUE };
 	_to_pty = { INVALID_HANDLE_VALUE };
 	_from_pty = { INVALID_HANDLE_VALUE };
@@ -250,10 +259,10 @@ PtyProxyWin::_run_to_thread() {
 void
 PtyProxyWin::_create_process() {
 	_init_startup_info();
+	std::wstring command = std::wstring(_command);
+	command.push_back(L'\0');
 
-	wchar_t szCommand[4];
-	std::memcpy(szCommand, L"cmd", sizeof(wchar_t) * 4);
-	if (!CreateProcess(NULL, szCommand, NULL, NULL, FALSE, EXTENDED_STARTUPINFO_PRESENT, 
+	if (!CreateProcessW(NULL, &command[0], NULL, NULL, FALSE, EXTENDED_STARTUPINFO_PRESENT,
 	 		NULL, NULL, &_startup_info.StartupInfo, &_client))  {
 	    _print_last_error("unable to create process");
 	    return;

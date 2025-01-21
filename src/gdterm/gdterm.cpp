@@ -28,7 +28,7 @@ static const int SELECT_MODE_CHAR   = 1;
 static const int SELECT_MODE_WORD   = 2;
 static const int SELECT_MODE_LINE   = 3;
 
-extern PtyProxy * create_proxy(TermRenderer * renderer);
+extern PtyProxy * create_proxy(TermRenderer * renderer, const std::wstring &command);
 
 void GDTerm::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_font"), &GDTerm::get_font);
@@ -96,6 +96,8 @@ void GDTerm::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "background"), "set_background", "get_background");
 
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "vt_handler_log_path"), "set_vt_handler_log_path", "get_vt_handler_log_path");
+
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "command"), "set_command", "get_command");
 
 	ADD_SIGNAL(MethodInfo("bell_request"));
 	ADD_SIGNAL(MethodInfo("inactive"));
@@ -348,6 +350,16 @@ GDTerm::set_vt_handler_log_path(String log_path) {
 	}
 }
 
+String
+GDTerm::get_command() const {
+  return command;
+}
+
+void
+GDTerm::set_command(String c) {
+  command = c;
+}
+
 Color
 GDTerm::get_background() const {
 	return background;
@@ -447,7 +459,9 @@ GDTerm::start() {
 	clear();
 
 	// Create a new proxy
-	_proxy = create_proxy(this);
+	auto wstr = command.wide_string();
+	std::wstring command(wstr.get_data());
+	_proxy = create_proxy(this,command);
 	_proxy->resize_screen(_rows, _cols);
 }
 
