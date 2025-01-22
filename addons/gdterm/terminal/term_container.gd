@@ -1,5 +1,5 @@
 @tool
-extends PanelContainer
+extends MarginContainer
 
 var _id : int = 0
 
