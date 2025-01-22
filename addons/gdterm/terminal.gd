@@ -1,7 +1,7 @@
 @tool
 extends EditorPlugin
 
-const MainPanel = preload("res://addons/gdterm/terminal/main.tscn")
+const MainPanel = preload("res://addons/gdterm/terminal/border.tscn")
 const InactivePanel = preload("res://addons/gdterm/terminal/inactive.tscn")
 const BottomPanel = preload("res://addons/gdterm/terminal/main.tscn")
 
@@ -69,8 +69,8 @@ func _apply_theme(theme):
 		elif theme == THEME_DARK:
 			active_theme = preload("res://addons/gdterm/themes/dark.tres")
 		if main_panel_instance != null:
-			main_panel_instance.set_theme(active_theme)
-			main_panel_instance.theme_changed()
+			main_panel_instance.get_main().set_theme(active_theme)
+			main_panel_instance.get_main().theme_changed()
 		if bottom_panel_instance != null:
 			bottom_panel_instance.set_theme(active_theme)
 			bottom_panel_instance.theme_changed()
@@ -92,7 +92,7 @@ func _apply_layout(layout):
 			if main_panel_instance == null:
 				main_panel_instance = MainPanel.instantiate()
 				if active_theme != null:
-					main_panel_instance.set_theme(active_theme)
+					main_panel_instance.get_main().set_theme(active_theme)
 				main_panel_instance.visible = show_main
 				EditorInterface.get_editor_main_screen().add_child(main_panel_instance)
 		if layout == LAYOUT_BOTTOM or layout == LAYOUT_BOTH:

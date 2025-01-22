@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://b62ioxhftvwg7" path="res://addons/gdterm/terminal/term.tscn" id="3_u81lm"]
 [ext_resource type="AudioStream" uid="uid://dxb1sddgekrg5" path="res://addons/gdterm/audio/bell.mp3" id="5_8xiy1"]
 
-[node name="main" type="PanelContainer"]
+[node name="main" type="MarginContainer"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -15,11 +15,19 @@ grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme = ExtResource("1_na4fp")
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 0
 script = ExtResource("2_eh8tx")
 
-[node name="term_container" type="PanelContainer" parent="."]
+[node name="term_container" type="MarginContainer" parent="."]
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 0
 script = ExtResource("1_ptxgd")
 
 [node name="player" type="AudioStreamPlayer" parent="term_container"]

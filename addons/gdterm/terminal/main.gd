@@ -1,5 +1,5 @@
 @tool
-extends PanelContainer
+extends MarginContainer
 
 func theme_changed():
 	$term_container.apply_themes()
