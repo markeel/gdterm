@@ -16,6 +16,7 @@ if env["platform"] == "windows":
 	cpppath.extend([ "platform/windows" ])
 	ptyenv.Append(CCFLAGS="-DUNICODE")
 else:
+	env.Append(CPPDEFINES = "USE_PRIMARY_CLIPBOARD")
 	sources.extend(Glob("platform/linux/*.cpp"))
 	cpppath.extend([ "platform/linux" ])
 
