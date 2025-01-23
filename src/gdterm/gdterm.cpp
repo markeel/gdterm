@@ -1,6 +1,8 @@
 
 #include "gdterm.h"
+#ifdef USE_PRIMARY_CLIPBOARD
 #include "godot_cpp/classes/display_server.hpp"
+#endif
 #include "godot_cpp/classes/global_constants.hpp"
 #include "godot_cpp/classes/input_event_mouse_button.hpp"
 #include "godot_cpp/classes/input_event_mouse_motion.hpp"
@@ -794,9 +796,11 @@ GDTerm::_gui_input(const Ref<InputEvent> & p_event) {
 				}
 				if (_selection_active) {
 					godot::String text = get_selected_text();
+#ifdef USE_PRIMARY_CLIPBOARD
 					if (text.length() > 0) {
 						godot::DisplayServer::get_singleton()->clipboard_set_primary(text);
 					}
+#endif
 				}
 			}
 		}
