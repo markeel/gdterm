@@ -57,6 +57,22 @@ void GDTerm::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_cyan", "cyan"), &GDTerm::set_cyan);
 	ClassDB::bind_method(D_METHOD("get_white"), &GDTerm::get_white);
 	ClassDB::bind_method(D_METHOD("set_white", "white"), &GDTerm::set_white);
+	ClassDB::bind_method(D_METHOD("get_bright_black"), &GDTerm::get_bright_black);
+	ClassDB::bind_method(D_METHOD("set_bright_black", "black"), &GDTerm::set_bright_black);
+	ClassDB::bind_method(D_METHOD("get_bright_red"), &GDTerm::get_bright_red);
+	ClassDB::bind_method(D_METHOD("set_bright_red", "red"), &GDTerm::set_bright_red);
+	ClassDB::bind_method(D_METHOD("get_bright_green"), &GDTerm::get_bright_green);
+	ClassDB::bind_method(D_METHOD("set_bright_green", "green"), &GDTerm::set_bright_green);
+	ClassDB::bind_method(D_METHOD("get_bright_yellow"), &GDTerm::get_bright_yellow);
+	ClassDB::bind_method(D_METHOD("set_bright_yellow", "yellow"), &GDTerm::set_bright_yellow);
+	ClassDB::bind_method(D_METHOD("get_bright_blue"), &GDTerm::get_bright_blue);
+	ClassDB::bind_method(D_METHOD("set_bright_blue", "blue"), &GDTerm::set_bright_blue);
+	ClassDB::bind_method(D_METHOD("get_bright_magenta"), &GDTerm::get_bright_magenta);
+	ClassDB::bind_method(D_METHOD("set_bright_magenta", "magenta"), &GDTerm::set_bright_magenta);
+	ClassDB::bind_method(D_METHOD("get_bright_cyan"), &GDTerm::get_bright_cyan);
+	ClassDB::bind_method(D_METHOD("set_bright_cyan", "cyan"), &GDTerm::set_bright_cyan);
+	ClassDB::bind_method(D_METHOD("get_bright_white"), &GDTerm::get_bright_white);
+	ClassDB::bind_method(D_METHOD("set_bright_white", "white"), &GDTerm::set_bright_white);
 	ClassDB::bind_method(D_METHOD("get_foreground"), &GDTerm::get_foreground);
 	ClassDB::bind_method(D_METHOD("set_foreground", "foreground"), &GDTerm::set_foreground);
 	ClassDB::bind_method(D_METHOD("get_background"), &GDTerm::get_background);
@@ -94,6 +110,14 @@ void GDTerm::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "magenta"), "set_magenta", "get_magenta");
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "cyan"), "set_cyan", "get_cyan");
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "white"), "set_white", "get_white");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "bright_black"), "set_bright_black", "get_bright_black");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "bright_red"), "set_bright_red", "get_bright_red");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "bright_green"), "set_bright_green", "get_bright_green");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "bright_yellow"), "set_bright_yellow", "get_bright_yellow");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "bright_blue"), "set_bright_blue", "get_bright_blue");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "bright_magenta"), "set_bright_magenta", "get_bright_magenta");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "bright_cyan"), "set_bright_cyan", "get_bright_cyan");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "bright_white"), "set_bright_white", "get_bright_white");
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "foreground"), "set_foreground", "get_foreground");
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "background"), "set_background", "get_background");
 
@@ -114,6 +138,14 @@ GDTerm::GDTerm() {
 	magenta = godot::Color("#BB00BB");
 	cyan = godot::Color("#00BBBB");
 	white = godot::Color("#BBBBBB");
+	bright_black = godot::Color("#555555");
+	bright_red = godot::Color("#DD5555");
+	bright_green = godot::Color("#55DD55");
+	bright_yellow = godot::Color("#DDDD55");
+	bright_blue = godot::Color("#5555DD");
+	bright_magenta = godot::Color("#DD55DD");
+	bright_cyan = godot::Color("#55DDDD");
+	bright_white = godot::Color("#DDDDDD");
 	foreground = godot::Color("#111111");
 	background = godot::Color("#EEEEEE");
 	set_clip_contents(true);
@@ -308,6 +340,102 @@ GDTerm::set_white(Color c) {
 Color
 GDTerm::get_white() const {
 	return white;
+}
+
+void
+GDTerm::set_bright_black(Color c) {
+	if (bright_black != c) {
+		bright_black = c;
+	}
+}
+
+Color
+GDTerm::get_bright_black() const {
+	return bright_black;
+}
+
+void
+GDTerm::set_bright_red(Color c) {
+	if (bright_red != c) {
+		bright_red = c;
+	}
+}
+
+Color
+GDTerm::get_bright_red() const {
+	return bright_red;
+}
+
+void
+GDTerm::set_bright_green(Color c) {
+	if (bright_green != c) {
+		bright_green = c;
+	}
+}
+
+Color
+GDTerm::get_bright_green() const {
+	return bright_green;
+}
+
+void
+GDTerm::set_bright_yellow(Color c) {
+	if (bright_yellow != c) {
+		bright_yellow = c;
+	}
+}
+
+Color
+GDTerm::get_bright_yellow() const {
+	return bright_yellow;
+}
+
+void
+GDTerm::set_bright_blue(Color c) {
+	if (bright_blue != c) {
+		bright_blue = c;
+	}
+}
+
+Color
+GDTerm::get_bright_blue() const {
+	return bright_blue;
+}
+
+void
+GDTerm::set_bright_magenta(Color c) {
+	if (bright_magenta != c) {
+		bright_magenta = c;
+	}
+}
+
+Color
+GDTerm::get_bright_magenta() const {
+	return bright_magenta;
+}
+
+void
+GDTerm::set_bright_cyan(Color c) {
+	if (bright_cyan != c) {
+		bright_cyan = c;
+	}
+}
+
+Color
+GDTerm::get_bright_cyan() const {
+	return bright_cyan;
+}
+
+void
+GDTerm::set_bright_white(Color c) {
+	if (bright_white != c) {
+		bright_white = c;
+	}
+}
+
+Color
+GDTerm::get_bright_white() const {
+	return bright_white;
 }
 
 void
@@ -538,7 +666,10 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 			col += 1;
 		} else if (kind == DIRECTIVE_SET_STATE) {
 			LineTag tag = line.dirs[j].data.tag;
-			switch (tag) {
+			float tag_red = CLAMP(tag.red, 0, 255) / 255.0f;
+			float tag_green = CLAMP(tag.green, 0, 255) / 255.0f;
+			float tag_blue = CLAMP(tag.blue, 0, 255) / 255.0f;
+			switch (tag.code) {
 				case BOLD:
 					cur_font = bold_font;
 					break;
@@ -581,6 +712,33 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 				case FG_COLOR_WHITE:
 					fg_color = white;
 					break;
+				case FG_COLOR_BRIGHT_BLACK:
+					fg_color = bright_black;
+					break;
+				case FG_COLOR_BRIGHT_RED:
+					fg_color = bright_red;
+					break;
+				case FG_COLOR_BRIGHT_GREEN:
+					fg_color = bright_green;
+					break;
+				case FG_COLOR_BRIGHT_YELLOW:
+					fg_color = bright_yellow;
+					break;
+				case FG_COLOR_BRIGHT_BLUE:
+					fg_color = bright_blue;
+					break;
+				case FG_COLOR_BRIGHT_MAGENTA:
+					fg_color = bright_magenta;
+					break;
+				case FG_COLOR_BRIGHT_CYAN:
+					fg_color = bright_cyan;
+					break;
+				case FG_COLOR_BRIGHT_WHITE:
+					fg_color = bright_white;
+					break;
+				case FG_COLOR_RGB:
+					fg_color = Color(tag_red, tag_green, tag_blue);
+					break;
 				case BG_COLOR_BLACK:
 					bg_color = black;
 					break;
@@ -605,12 +763,39 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 				case BG_COLOR_WHITE:
 					bg_color = white;
 					break;
+				case BG_COLOR_BRIGHT_BLACK:
+					bg_color = bright_black;
+					break;
+				case BG_COLOR_BRIGHT_RED:
+					bg_color = bright_red;
+					break;
+				case BG_COLOR_BRIGHT_GREEN:
+					bg_color = bright_green;
+					break;
+				case BG_COLOR_BRIGHT_YELLOW:
+					bg_color = bright_yellow;
+					break;
+				case BG_COLOR_BRIGHT_BLUE:
+					bg_color = bright_blue;
+					break;
+				case BG_COLOR_BRIGHT_MAGENTA:
+					bg_color = bright_magenta;
+					break;
+				case BG_COLOR_BRIGHT_CYAN:
+					bg_color = bright_cyan;
+					break;
+				case BG_COLOR_BRIGHT_WHITE:
+					bg_color = bright_white;
+					break;
+				case BG_COLOR_RGB:
+					bg_color = Color(tag.red, tag.green, tag.blue);
+					break;
 				default:
 					break;
 			}
 		} else if (kind == DIRECTIVE_CLEAR_STATE) {
 			LineTag tag = line.dirs[j].data.tag;
-			switch (tag) {
+			switch (tag.code) {
 				case BOLD:
 				case DIM:
 					cur_font = font;
@@ -635,6 +820,15 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 				case FG_COLOR_MAGENTA:
 				case FG_COLOR_CYAN:
 				case FG_COLOR_WHITE:
+				case FG_COLOR_BRIGHT_BLACK:
+				case FG_COLOR_BRIGHT_RED:
+				case FG_COLOR_BRIGHT_GREEN:
+				case FG_COLOR_BRIGHT_YELLOW:
+				case FG_COLOR_BRIGHT_BLUE:
+				case FG_COLOR_BRIGHT_MAGENTA:
+				case FG_COLOR_BRIGHT_CYAN:
+				case FG_COLOR_BRIGHT_WHITE:
+				case FG_COLOR_RGB:
 					fg_color = foreground;
 					break;
 				case BG_COLOR_BLACK:
@@ -645,6 +839,15 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 				case BG_COLOR_MAGENTA:
 				case BG_COLOR_CYAN:
 				case BG_COLOR_WHITE:
+				case BG_COLOR_BRIGHT_BLACK:
+				case BG_COLOR_BRIGHT_RED:
+				case BG_COLOR_BRIGHT_GREEN:
+				case BG_COLOR_BRIGHT_YELLOW:
+				case BG_COLOR_BRIGHT_BLUE:
+				case BG_COLOR_BRIGHT_MAGENTA:
+				case BG_COLOR_BRIGHT_CYAN:
+				case BG_COLOR_BRIGHT_WHITE:
+				case BG_COLOR_RGB:
 					bg_color = background;
 					break;
 				default:
@@ -1016,7 +1219,7 @@ GDTerm::resize_complete() {
 bool
 GDTerm::_blink_on_line(GDTermLine &line) const {
 	for (int j=0; j<line.dirs.size(); j++) {
-		if ((line.dirs[j].kind == DIRECTIVE_SET_STATE) && (line.dirs[j].data.tag == LineTag::BLINK)) {
+		if ((line.dirs[j].kind == DIRECTIVE_SET_STATE) && (line.dirs[j].data.tag.code == LineTagCode::BLINK)) {
 			return true;
 		}
 	}

@@ -28,53 +28,133 @@ extern "C" {
 	}
 
 	LineTag get_fg_color_tag(tmt_color_t color) {
-		switch (color) {
+		struct LineTag tag;
+		tag.code = LineTagCode::UNDEFINED;
+		switch (color.code) {
 			case TMT_COLOR_BLACK:
-				return LineTag::FG_COLOR_BLACK;
+				tag.code = LineTagCode::FG_COLOR_BLACK;
+				break;
 			case TMT_COLOR_RED:
-				return LineTag::FG_COLOR_RED;
+				tag.code = LineTagCode::FG_COLOR_RED;
+				break;
 			case TMT_COLOR_GREEN:
-				return LineTag::FG_COLOR_GREEN;
+				tag.code = LineTagCode::FG_COLOR_GREEN;
+				break;
 			case TMT_COLOR_YELLOW:
-				return LineTag::FG_COLOR_YELLOW;
+				tag.code = LineTagCode::FG_COLOR_YELLOW;
+				break;
 			case TMT_COLOR_BLUE:
-				return LineTag::FG_COLOR_BLUE;
+				tag.code = LineTagCode::FG_COLOR_BLUE;
+				break;
 			case TMT_COLOR_MAGENTA:
-				return LineTag::FG_COLOR_MAGENTA;
+				tag.code = LineTagCode::FG_COLOR_MAGENTA;
+				break;
 			case TMT_COLOR_CYAN:
-				return LineTag::FG_COLOR_CYAN;
+				tag.code = LineTagCode::FG_COLOR_CYAN;
+				break;
 			case TMT_COLOR_WHITE:
-				return LineTag::FG_COLOR_WHITE;
+				tag.code = LineTagCode::FG_COLOR_WHITE;
+				break;
+			case TMT_COLOR_BRIGHT_BLACK:
+				tag.code = LineTagCode::FG_COLOR_BRIGHT_BLACK;
+				break;
+			case TMT_COLOR_BRIGHT_RED:
+				tag.code = LineTagCode::FG_COLOR_BRIGHT_RED;
+				break;
+			case TMT_COLOR_BRIGHT_GREEN:
+				tag.code = LineTagCode::FG_COLOR_BRIGHT_GREEN;
+				break;
+			case TMT_COLOR_BRIGHT_YELLOW:
+				tag.code = LineTagCode::FG_COLOR_BRIGHT_YELLOW;
+				break;
+			case TMT_COLOR_BRIGHT_BLUE:
+				tag.code = LineTagCode::FG_COLOR_BRIGHT_BLUE;
+				break;
+			case TMT_COLOR_BRIGHT_MAGENTA:
+				tag.code = LineTagCode::FG_COLOR_BRIGHT_MAGENTA;
+				break;
+			case TMT_COLOR_BRIGHT_CYAN:
+				tag.code = LineTagCode::FG_COLOR_BRIGHT_CYAN;
+				break;
+			case TMT_COLOR_BRIGHT_WHITE:
+				tag.code = LineTagCode::FG_COLOR_BRIGHT_WHITE;
+				break;
+			case TMT_COLOR_RGB:
+				tag.code = LineTagCode::FG_COLOR_RGB;
+				tag.red = color.red;
+				tag.green = color.green;
+				tag.blue = color.blue;
+				break;
 			case TMT_COLOR_DEFAULT:
 			case TMT_COLOR_MAX:
 			  break;
 		}
-		return LineTag::UNDEFINED;
+		return tag;
 	}
 
 	LineTag get_bg_color_tag(tmt_color_t color) {
-		switch (color) {
+		LineTag tag;
+		tag.code = LineTagCode::UNDEFINED;
+		switch (color.code) {
 			case TMT_COLOR_BLACK:
-				return LineTag::BG_COLOR_BLACK;
+				tag.code = LineTagCode::BG_COLOR_BLACK;
+				break;
 			case TMT_COLOR_RED:
-				return LineTag::BG_COLOR_RED;
+				tag.code = LineTagCode::BG_COLOR_RED;
+				break;
 			case TMT_COLOR_GREEN:
-				return LineTag::BG_COLOR_GREEN;
+				tag.code = LineTagCode::BG_COLOR_GREEN;
+				break;
 			case TMT_COLOR_YELLOW:
-				return LineTag::BG_COLOR_YELLOW;
+				tag.code = LineTagCode::BG_COLOR_YELLOW;
+				break;
 			case TMT_COLOR_BLUE:
-				return LineTag::BG_COLOR_BLUE;
+				tag.code = LineTagCode::BG_COLOR_BLUE;
+				break;
 			case TMT_COLOR_MAGENTA:
-				return LineTag::BG_COLOR_MAGENTA;
+				tag.code = LineTagCode::BG_COLOR_MAGENTA;
+				break;
 			case TMT_COLOR_CYAN:
-				return LineTag::BG_COLOR_CYAN;
+				tag.code = LineTagCode::BG_COLOR_CYAN;
+				break;
 			case TMT_COLOR_WHITE:
-				return LineTag::BG_COLOR_WHITE;
+				tag.code = LineTagCode::BG_COLOR_WHITE;
+				break;
+			case TMT_COLOR_BRIGHT_BLACK:
+				tag.code = LineTagCode::BG_COLOR_BRIGHT_BLACK;
+				break;
+			case TMT_COLOR_BRIGHT_RED:
+				tag.code = LineTagCode::BG_COLOR_BRIGHT_RED;
+				break;
+			case TMT_COLOR_BRIGHT_GREEN:
+				tag.code = LineTagCode::BG_COLOR_BRIGHT_GREEN;
+				break;
+			case TMT_COLOR_BRIGHT_YELLOW:
+				tag.code = LineTagCode::BG_COLOR_BRIGHT_YELLOW;
+				break;
+			case TMT_COLOR_BRIGHT_BLUE:
+				tag.code = LineTagCode::BG_COLOR_BRIGHT_BLUE;
+				break;
+			case TMT_COLOR_BRIGHT_MAGENTA:
+				tag.code = LineTagCode::BG_COLOR_BRIGHT_MAGENTA;
+				break;
+			case TMT_COLOR_BRIGHT_CYAN:
+				tag.code = LineTagCode::BG_COLOR_BRIGHT_CYAN;
+				break;
+			case TMT_COLOR_BRIGHT_WHITE:
+				tag.code = LineTagCode::BG_COLOR_BRIGHT_WHITE;
+				break;
+			case TMT_COLOR_RGB:
+				tag.code = LineTagCode::BG_COLOR_RGB;
+				tag.red = color.red;
+				tag.green = color.green;
+				tag.blue = color.blue;
+				break;
 			case TMT_COLOR_DEFAULT:
 			case TMT_COLOR_MAX:
 			  break;
 		}
-		return LineTag::UNDEFINED;
+		return tag;
 	}
 
 	int add_glyph_chars(int char_start_idx, int cidx, TMTLINE * line, PtyProxy * proxy) {
@@ -96,8 +176,8 @@ extern "C" {
 		bool reverse = false;
 		bool invisible = false;
 		for (int lidx=0; lidx<screen->nline; lidx++) {
-			tmt_color_t fg = TMT_COLOR_DEFAULT;
-			tmt_color_t bg = TMT_COLOR_DEFAULT;
+			tmt_color_t fg = tmt_color_t { TMT_COLOR_DEFAULT, 0, 0, 0 };
+			tmt_color_t bg = tmt_color_t { TMT_COLOR_DEFAULT, 0, 0, 0 };
 			TMTLINE * line = screen->lines[lidx];
 			if (line->dirty) {
 				proxy->_screen_set_row(lidx);
@@ -106,43 +186,43 @@ extern "C" {
 					char_start_idx = add_glyph_chars(char_start_idx, cidx, line, proxy);
 					if (line->chars[cidx].a.bold != bold) {
 						bold = line->chars[cidx].a.bold;
-						if (bold) { proxy->_screen_add_tag(LineTag::BOLD); } else { proxy->_screen_remove_tag(LineTag::BOLD); }
+						if (bold) { proxy->_screen_add_tag(LineTag { LineTagCode::BOLD, 0, 0, 0 }); } else { proxy->_screen_remove_tag(LineTag { LineTagCode::BOLD, 0, 0, 0 }); }
 					}
 					if (line->chars[cidx].a.dim != dim) {
 						dim = line->chars[cidx].a.dim;
-						if (dim) { proxy->_screen_add_tag(LineTag::DIM); } else { proxy->_screen_remove_tag(LineTag::DIM); }
+						if (dim) { proxy->_screen_add_tag(LineTag { LineTagCode::DIM, 0, 0, 0}); } else { proxy->_screen_remove_tag(LineTag { LineTagCode::DIM, 0, 0, 0 }); }
 					}
 					if (line->chars[cidx].a.underline != underline) {
 						underline = line->chars[cidx].a.underline;
-						if (underline) { proxy->_screen_add_tag(LineTag::UNDERLINE); } else { proxy->_screen_remove_tag(LineTag::UNDERLINE); }
+						if (underline) { proxy->_screen_add_tag(LineTag { LineTagCode::UNDERLINE, 0, 0, 0}); } else { proxy->_screen_remove_tag(LineTag { LineTagCode::UNDERLINE, 0, 0, 0}); }
 					}
 					if (line->chars[cidx].a.blink != blink) {
 						blink = line->chars[cidx].a.blink;
-						if (blink) { proxy->_screen_add_tag(LineTag::BLINK); } else { proxy->_screen_remove_tag(LineTag::BLINK); }
+						if (blink) { proxy->_screen_add_tag(LineTag { LineTagCode::BLINK, 0, 0, 0}); } else { proxy->_screen_remove_tag(LineTag {LineTagCode::BLINK, 0, 0, 0}); }
 					}
 					if (line->chars[cidx].a.reverse != reverse) {
 						reverse = line->chars[cidx].a.reverse;
-						if (reverse) { proxy->_screen_add_tag(LineTag::REVERSE); } else { proxy->_screen_remove_tag(LineTag::REVERSE); }
+						if (reverse) { proxy->_screen_add_tag(LineTag { LineTagCode::REVERSE, 0, 0, 0}); } else { proxy->_screen_remove_tag(LineTag { LineTagCode::REVERSE, 0, 0, 0 }); }
 					}
 					if (line->chars[cidx].a.invisible != invisible) {
 						invisible = line->chars[cidx].a.invisible;
-						if (invisible) { proxy->_screen_add_tag(LineTag::INVISIBLE); } else { proxy->_screen_remove_tag(LineTag::INVISIBLE); }
+						if (invisible) { proxy->_screen_add_tag(LineTag { LineTagCode::INVISIBLE, 0, 0, 0}); } else { proxy->_screen_remove_tag(LineTag { LineTagCode::INVISIBLE, 0, 0, 0 }); }
 					}
-					if (line->chars[cidx].a.fg != fg) {
-						if (fg >= TMT_COLOR_BLACK) {
+					if ((line->chars[cidx].a.fg.code != fg.code) || (line->chars[cidx].a.fg.code == TMT_COLOR_RGB)) {
+						if (fg.code >= TMT_COLOR_BLACK) {
 							proxy->_screen_remove_tag(get_fg_color_tag(fg));
 						}
 						fg = line->chars[cidx].a.fg;
-						if (fg >= TMT_COLOR_BLACK) {
+						if (fg.code >= TMT_COLOR_BLACK) {
 							proxy->_screen_add_tag(get_fg_color_tag(fg));
 						}
 					}
-					if (line->chars[cidx].a.bg != bg) {
-						if (bg >= TMT_COLOR_BLACK) {
+					if ((line->chars[cidx].a.bg.code != bg.code) || (line->chars[cidx].a.bg.code == TMT_COLOR_RGB)) {
+						if (bg.code >= TMT_COLOR_BLACK) {
 							proxy->_screen_remove_tag(get_bg_color_tag(bg));
 						}
 						bg = line->chars[cidx].a.bg;
-						if (bg >= TMT_COLOR_BLACK) {
+						if (bg.code >= TMT_COLOR_BLACK) {
 							proxy->_screen_add_tag(get_bg_color_tag(bg));
 						}
 					}
