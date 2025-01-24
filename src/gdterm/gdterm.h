@@ -47,6 +47,14 @@ namespace godot {
 		Color      magenta;
 		Color      cyan;
 		Color      white;
+		Color      bright_black;
+		Color      bright_red;
+		Color      bright_green;
+		Color      bright_yellow;
+		Color      bright_blue;
+		Color      bright_magenta;
+		Color      bright_cyan;
+		Color      bright_white;
 		Color      foreground;
 		Color      background;
 		String     vt_handler_log_path;
@@ -152,6 +160,30 @@ namespace godot {
 
 		void set_white(Color c);
 		Color get_white() const;
+
+		void set_bright_black(Color c);
+		Color get_bright_black() const;
+
+		void set_bright_red(Color c);
+		Color get_bright_red() const;
+
+		void set_bright_green(Color c);
+		Color get_bright_green() const;
+
+		void set_bright_yellow(Color c);
+		Color get_bright_yellow() const;
+
+		void set_bright_blue(Color c);
+		Color get_bright_blue() const;
+
+		void set_bright_magenta(Color c);
+		Color get_bright_magenta() const;
+
+		void set_bright_cyan(Color c);
+		Color get_bright_cyan() const;
+
+		void set_bright_white(Color c);
+		Color get_bright_white() const;
 
 		void set_foreground(Color c);
 		Color get_foreground() const;
