@@ -94,6 +94,7 @@ func _do_copy():
 
 func _do_paste():
 	var text = DisplayServer.clipboard_get()
+	text = text.replace("\r\n", "\r")
 	if text.length() > 0:
 		$GDTerm.send_input(text)
 
