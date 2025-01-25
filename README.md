@@ -47,8 +47,8 @@ To use the pre-compiled binaries:
 To compile from source instead of using the pre-compiled library:
 
 * git clone http://github.com/markeel/gdterm
-* git submodule update --init --recursive
 * cd gdterm
+* git submodule update --init --recursive
 * scons
 * copy addons directory to the Godot project you need this extension
 
