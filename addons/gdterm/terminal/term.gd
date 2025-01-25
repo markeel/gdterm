@@ -113,3 +113,9 @@ func _on_visibility_changed() -> void:
 func _on_gd_term_tree_entered() -> void:
 	if visible:
 		$GDTerm.start()
+
+func _on_gd_term_paste_request() -> void:
+	_do_paste()
+
+func _on_gd_term_copy_request() -> void:
+	_do_copy()

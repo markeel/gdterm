@@ -126,6 +126,8 @@ void GDTerm::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("bell_request"));
 	ADD_SIGNAL(MethodInfo("inactive"));
 	ADD_SIGNAL(MethodInfo("scrollback_changed"));
+	ADD_SIGNAL(MethodInfo("copy_request"));
+	ADD_SIGNAL(MethodInfo("paste_request"));
 }
 
 GDTerm::GDTerm() {
@@ -163,6 +165,10 @@ GDTerm::GDTerm() {
 	// Pending
 	_pending_dirty = false;
 	_pending_screen_lines.resize(24);
+	for (int i=0; i<24; i++) {
+		_pending_screen_lines[i].glyph_length = 0;
+		_pending_screen_lines[i].selectable_length = 0;
+	}
 	_pending_state = STATE_SCREEN_DONE;
 	_pending_screen_row = 0;
 	_pending_cursor_displayed = true;
@@ -536,6 +542,10 @@ GDTerm::get_font_size() const {
 void
 GDTerm::clear() {
 	_screen_lines.resize(_rows);
+	for (int i=0; i<_rows; i++) {
+		_screen_lines[i].glyph_length = 0;
+		_screen_lines[i].selectable_length = 0;
+	}
 	_scrollback.clear();
 	_scrollback_pos = 0;
 	_cursor_showing = false;
@@ -627,7 +637,7 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 		if (reverse) {
 			std::swap(cur_fg, cur_bg);
 		}
-		if (_selection_active && _is_in_selection(actual_row, col)) {
+		if (_selection_active && _is_in_selection(line.selectable_length, actual_row, col)) {
 			std::swap(cur_fg, cur_bg);
 		}
 		bool outline_cursor = false;
@@ -922,7 +932,11 @@ GDTerm::_gui_input(const Ref<InputEvent> & p_event) {
 			assert(sizeof(wchar_t) == sizeof(int64_t));
 			wchar_t unicode = (wchar_t)ke->get_unicode();
 			Key code = ke->get_keycode_with_modifiers();
-			if (_is_shift_control_tab(code)) {
+			if (_is_control_shift_c(code)) {
+				emit_signal("copy_request");
+			} else if (_is_control_shift_v(code)) {
+				emit_signal("paste_request");
+			} else if (_is_shift_control_tab(code)) {
 				Control * prev = find_prev_valid_focus();
 				prev->grab_focus();
 			} else if (_is_control_tab(code)) {
@@ -952,7 +966,8 @@ GDTerm::_gui_input(const Ref<InputEvent> & p_event) {
 				int mouse_row = mpos.y / _font_space_size.y;
 				int mouse_col = mpos.x / _font_space_size.x;
 				if (!_selecting) {
-					if (_selection_active && !_is_in_selection(mouse_row+_scrollback_pos, mouse_col)) {
+					const GDTermLine & line = _get_term_line(mouse_row+_scrollback_pos);
+					if (_selection_active && !_is_in_selection(line.selectable_length, mouse_row+_scrollback_pos, mouse_col)) {
 						if (!mbe->is_shift_pressed()) {
 							_selection_active = false;
 							_selecting = false;
@@ -1093,10 +1108,14 @@ GDTerm::screen_set_row(int row) {
 	_pending_screen_row = row;
 	if (_pending_target == TARGET_SCREEN) {
 		if ((_pending_screen_row >= 0) && (_pending_screen_row < _pending_screen_lines.size())) {
+			_pending_screen_lines[row].glyph_length = 0;
+			_pending_screen_lines[row].selectable_length = 0;
 			_pending_screen_lines[row].dirs.clear();
 		}
 	} else {
 		if ((_pending_screen_row >= 0) && (_pending_screen_row < _pending_scrollback.size())) {
+			_pending_scrollback[row].glyph_length = 0;
+			_pending_scrollback[row].selectable_length = 0;
 			_pending_scrollback[row].dirs.clear();
 		}
 	}
@@ -1114,7 +1133,9 @@ GDTerm::screen_add_tag(LineTag tag) {
 	d.data.tag = tag;
 	if (_pending_target == TARGET_SCREEN) {
 		if ((_pending_screen_row >= 0) && (_pending_screen_row < _pending_screen_lines.size())) {
-			_pending_screen_lines[_pending_screen_row].dirs.push_back(d);
+			if (d.kind == DIRECTIVE_WRITE_GLYPH) {
+				_pending_screen_lines[_pending_screen_row].dirs.push_back(d);
+			}
 		}
 	} else {
 		if ((_pending_screen_row >= 0) && (_pending_screen_row < _pending_scrollback.size())) {
@@ -1154,10 +1175,18 @@ GDTerm::screen_add_glyph(const char * c, int len) {
 	d.data.text = std::string(c, len);
 	if (_pending_target == TARGET_SCREEN) {
 		if ((_pending_screen_row >= 0) && (_pending_screen_row < _pending_screen_lines.size())) {
+			_pending_screen_lines[_pending_screen_row].glyph_length += 1;
+			if (d.data.text != " ") {
+				_pending_screen_lines[_pending_screen_row].selectable_length = _pending_screen_lines[_pending_screen_row].glyph_length;
+			}
 			_pending_screen_lines[_pending_screen_row].dirs.push_back(d);
 		}
 	} else {
 		if ((_pending_screen_row >= 0) && (_pending_screen_row < _pending_scrollback.size())) {
+			_pending_scrollback[_pending_screen_row].glyph_length += 1;
+			if (d.data.text != " ") {
+				_pending_scrollback[_pending_screen_row].selectable_length = _pending_scrollback[_pending_screen_row].glyph_length;
+			}
 			_pending_scrollback[_pending_screen_row].dirs.push_back(d);
 		}
 	}
@@ -1316,11 +1345,11 @@ GDTerm::_update_select_for_end_col(int row, int col) {
 	} else if (_select_mode == SELECT_MODE_LINE) {
 		const GDTermLine & line = _get_term_line(row);
 		if (row >= _select_start_row) {
-			_select_end_col = _calc_line_size(line)-1;
+			_select_end_col = line.selectable_length-1;
 			_select_start_col = 0;
 		} else {
 			const GDTermLine & start_line = _get_term_line(_select_start_row);
-			_select_start_col = _calc_line_size(start_line)-1;
+			_select_start_col = line.selectable_length-1;
 			_select_end_col = 0;
 		}
 		return;
@@ -1380,6 +1409,9 @@ GDTerm::get_selected_text() const {
 			int cur_col = 0;
 			if (row > start_row) { selection += "\n"; }
 			const GDTermLine & line = (row < _scrollback.size()) ? _scrollback[row] : _screen_lines[row-_scrollback.size()];
+			if (row_end_col >= line.selectable_length) {
+				row_end_col = line.selectable_length-1;
+			}
 			for (int d=0; d<line.dirs.size(); d++) {
 				const GDTermLineDirective & dir = line.dirs[d];
 				if (dir.kind == DIRECTIVE_WRITE_GLYPH) {
@@ -1485,7 +1517,7 @@ GDTerm::_is_cursor_pos(int row, int col) {
 }
 
 bool
-GDTerm::_is_in_selection(int row, int col) {
+GDTerm::_is_in_selection(int max_selectable_col, int row, int col) {
 	int start_row = _select_start_row;
 	int start_col = _select_start_col;
 	int end_row = _select_end_row;
@@ -1500,13 +1532,20 @@ GDTerm::_is_in_selection(int row, int col) {
 	}
 
 	if ((row > start_row) && (row < end_row)) {
-		return true;
+		if (col < max_selectable_col) {
+			return true;
+		}
+		return false;
 	}
 
 	if (row == start_row) {
 		if (col >= start_col) {
 			if (row < end_row) {
-				return true;
+				if (col < max_selectable_col) {
+					return true;
+				} else {
+					return false;
+				}
 			}
 			if (col <= end_col) {
 				return true;
@@ -1535,6 +1574,27 @@ GDTerm::_is_control_tab(Key code) {
 	return false;
 }
 
+bool
+GDTerm::_is_control_shift_c(Key code) {
+	int ctrl = code & godot::KeyModifierMask::KEY_MASK_CTRL;
+	int shift = code & godot::KeyModifierMask::KEY_MASK_SHIFT;
+	int key = code & godot::KeyModifierMask::KEY_CODE_MASK;
+	if (ctrl && shift && (key == Key::KEY_C)) {
+		return true;
+	}
+	return false;
+}
+
+bool
+GDTerm::_is_control_shift_v(Key code) {
+	int ctrl = code & godot::KeyModifierMask::KEY_MASK_CTRL;
+	int shift = code & godot::KeyModifierMask::KEY_MASK_SHIFT;
+	int key = code & godot::KeyModifierMask::KEY_CODE_MASK;
+	if (ctrl && shift && (key == Key::KEY_V)) {
+		return true;
+	}
+	return false;
+}
 bool
 GDTerm::_is_shift_control_tab(Key code) {
 	int key = code & godot::KeyModifierMask::KEY_CODE_MASK;
@@ -1605,6 +1665,16 @@ GDTerm::_resize_screen_lines() {
 	_pending_state = STATE_SCREEN_RESIZE;
 	_screen_lines.resize(_rows); 
 	_pending_screen_lines.resize(_rows);
+	for (int i=0; i<_rows; i++) {
+		if (_screen_lines[i].dirs.size() == 0) {
+			_screen_lines[i].glyph_length = _cols; 
+			_screen_lines[i].selectable_length = 0; 
+		}
+		if (_pending_screen_lines[i].dirs.size() == 0) {
+			_pending_screen_lines[i].glyph_length = _cols; 
+			_pending_screen_lines[i].selectable_length = 0; 
+		}
+	}
 	GDTermLineDirectiveData space;
 	space.text = " ";
 	GDTermLineDirective space_dir;
@@ -1613,10 +1683,16 @@ GDTerm::_resize_screen_lines() {
 	for (int i=0; i<_pending_screen_lines.size(); i++) {
 		GDTermLine &line = _pending_screen_lines[i];	
 		int col = 0;
+		line.glyph_length = 0;
+		line.selectable_length = 0;
 		auto dir_iter = line.dirs.begin();
 		auto dir_end = line.dirs.end();
 		for (;dir_iter!=dir_end; ++dir_iter) {
 			if (dir_iter->kind == DIRECTIVE_WRITE_GLYPH) {
+				line.glyph_length += 1;
+				if (dir_iter->data.text != " ") {
+					line.selectable_length = line.glyph_length;
+				}
 				col += 1;
 				if (col >= _cols) {
 					line.dirs.erase(++dir_iter, dir_end);
