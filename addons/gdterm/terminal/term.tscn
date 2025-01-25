@@ -14,8 +14,8 @@ size = Vector2i(63, 62)
 always_on_top = true
 system_menu_id = 2
 item_count = 9
-item_0/text = "Copy"
-item_1/text = "Paste"
+item_0/text = "Copy (Shift+Ctrl+C)"
+item_1/text = "Paste (Shift+Ctrl+V)"
 item_1/id = 1
 item_2/text = "Restart"
 item_2/id = 2
@@ -53,7 +53,9 @@ value = 24.0
 [connection signal="visibility_changed" from="." to="." method="_on_visibility_changed"]
 [connection signal="id_pressed" from="menu" to="." method="_on_menu_id_pressed"]
 [connection signal="bell_request" from="GDTerm" to="." method="_on_gd_term_bell_request"]
+[connection signal="copy_request" from="GDTerm" to="." method="_on_gd_term_copy_request"]
 [connection signal="inactive" from="GDTerm" to="." method="_on_gd_term_inactive"]
+[connection signal="paste_request" from="GDTerm" to="." method="_on_gd_term_paste_request"]
 [connection signal="scrollback_changed" from="GDTerm" to="." method="_on_gd_term_scrollback_changed"]
 [connection signal="tree_entered" from="GDTerm" to="." method="_on_gd_term_tree_entered"]
 [connection signal="value_changed" from="scrollbar" to="." method="_on_scrollbar_value_changed"]

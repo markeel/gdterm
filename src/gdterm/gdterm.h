@@ -29,6 +29,8 @@ namespace godot {
 	};
 
 	struct GDTermLine {
+		int glyph_length;
+		int selectable_length;
 		std::vector<GDTermLineDirective> dirs;
 	};
 
@@ -232,7 +234,9 @@ namespace godot {
 		bool _clear_drawing();
 		void _restart_cursor();
 		bool _is_cursor_pos(int row, int col);
-		bool _is_in_selection(int row, int col);
+		bool _is_in_selection(int max_sel_col, int row, int col);
+		bool _is_control_shift_c(Key code);
+		bool _is_control_shift_v(Key code);
 		bool _is_control_tab(Key code);
 		bool _is_shift_control_tab(Key code);
 		bool _is_control_c(Key code);
