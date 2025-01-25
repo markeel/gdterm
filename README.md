@@ -5,7 +5,11 @@ GDTerm the Godot In-Editor Terminal
 ## Description
 
 This project was created to address the needs of developers who are working on their game in the Godot editor 
-and also need to perform actions at the command line (like start and stop servers, monitor logs, etc.).  In other words this 
+and also need to perform actions at the command line (like start and stop servers, monitor logs, etc.).  
+
+It might also help people who use [alternative programming language](https://github.com/Godot-Languages-Support/godot-lang-support), as it's possible to run Helix, Neovim, or Emacs within gdterm. 
+
+In other words this 
 is for those of us who like to keep the Godot Editor in full-screen and not shuffle their windows when needing to do command 
 line tasks.
 
