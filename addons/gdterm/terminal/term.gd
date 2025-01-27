@@ -4,6 +4,8 @@ extends HBoxContainer
 var _restart = false
 var _id = 0
 var _gd_term_changing = false
+var _cmds = null
+var _initialized = false
 
 signal bell
 signal new_above
@@ -21,6 +23,9 @@ func _ready():
 	$scrollbar.max_value = $GDTerm.get_num_scrollback_lines() + $GDTerm.get_num_screen_lines()
 	$scrollbar.value = $GDTerm.get_num_scrollback_lines()
 	apply_theme()
+
+func apply_cmds(cmds):
+	_cmds = cmds
 
 func apply_theme():
 	if has_theme_color("background", "GDTerm"):     $GDTerm.background     = get_theme_color("background", "GDTerm")
@@ -75,6 +80,7 @@ func _on_gd_term_bell_request() -> void:
 func _on_gd_term_inactive() -> void:
 	if _restart:
 		$GDTerm.start()
+		_send_initial_cmds()
 		_restart = false
 
 func _on_menu_id_pressed(id: int) -> void:
@@ -98,21 +104,32 @@ func _do_paste():
 	if text.length() > 0:
 		$GDTerm.send_input(text)
 
+func _send_initial_cmds():
+	if $GDTerm.is_active() and !_initialized:
+		if _cmds != null and not _cmds.is_empty():
+			$GDTerm.send_input(_cmds.replace("\r\n", "\r") + "\r")
+			_initialized = true
+
 func _do_restart():
 	if $GDTerm.is_active():
 		_restart = true
+		_initialized = false
 		$GDTerm.stop()
 	else:
+		_initialized = false
 		$GDTerm.start()
+		_send_initial_cmds()
 
 func _on_visibility_changed() -> void:
 	if visible:
 		if $GDTerm.is_inside_tree():
 			$GDTerm.start()
+			_send_initial_cmds()
 
 func _on_gd_term_tree_entered() -> void:
 	if visible:
 		$GDTerm.start()
+		_send_initial_cmds()
 
 func _on_gd_term_paste_request() -> void:
 	_do_paste()

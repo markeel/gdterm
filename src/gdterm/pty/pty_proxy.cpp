@@ -269,6 +269,7 @@ extern "C" {
 			case TMT_MSG_ANSWER:
 			{
 				const char * msg = (const char *)r;
+				proxy->_log_pty_input(msg);
 				proxy->send_string(msg);
 				break;
 			}
@@ -383,6 +384,13 @@ void
 PtyProxy::_show_cursor(bool flag) {
 	if (_renderer != nullptr) {
 		_renderer->show_cursor(flag);
+	}
+}
+
+void
+PtyProxy::_log_pty_input(const char * msg) {
+	if (_renderer != nullptr) {
+		_renderer->log_pty_input(msg);
 	}
 }
 

@@ -946,6 +946,7 @@ GDTerm::_gui_input(const Ref<InputEvent> & p_event) {
 				char buffer[100];
 				fill_term_string(buffer, 100, unicode, code);
 				if (_proxy != nullptr) {
+					log_pty_input(buffer);
 					_proxy->send_string(buffer);
 				} else {
 					emit_signal("bell_request");
@@ -1133,9 +1134,7 @@ GDTerm::screen_add_tag(LineTag tag) {
 	d.data.tag = tag;
 	if (_pending_target == TARGET_SCREEN) {
 		if ((_pending_screen_row >= 0) && (_pending_screen_row < _pending_screen_lines.size())) {
-			if (d.kind == DIRECTIVE_WRITE_GLYPH) {
-				_pending_screen_lines[_pending_screen_row].dirs.push_back(d);
-			}
+			_pending_screen_lines[_pending_screen_row].dirs.push_back(d);
 		}
 	} else {
 		if ((_pending_screen_row >= 0) && (_pending_screen_row < _pending_scrollback.size())) {
@@ -1173,6 +1172,7 @@ GDTerm::screen_add_glyph(const char * c, int len) {
 	GDTermLineDirective d;
 	d.kind = DIRECTIVE_WRITE_GLYPH;
 	d.data.text = std::string(c, len);
+	//fprintf(stderr, "%d: glyph='%s'\n", len, d.data.text.c_str());
 	if (_pending_target == TARGET_SCREEN) {
 		if ((_pending_screen_row >= 0) && (_pending_screen_row < _pending_screen_lines.size())) {
 			_pending_screen_lines[_pending_screen_row].glyph_length += 1;
@@ -1782,8 +1782,17 @@ GDTerm::_send_input_chunk(int max_send) {
 
 	std::memcpy(buffer, bytes.ptr(), amount);
 	buffer[amount] = '\0';
+	log_pty_input(buffer);
 	if (_proxy->send_string(buffer) >= 0) {
 		_send_input_buffer = _send_input_buffer.substr(amount);
+	}
+}
+
+void
+GDTerm::log_pty_input(const char * data) {
+	if (_vt_handler_input_log != nullptr) {
+		*_vt_handler_input_log << "KEY:'" << data << "':KEY" << std::endl;
+		_vt_handler_input_log->flush();
 	}
 }
 

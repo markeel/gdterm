@@ -31,6 +31,9 @@ PtyProxyWin::PtyProxyWin() {
 
 	_state = STATE_NONE;
 	_to_buffer_pos = 0;
+	_to_thread_started = false;
+
+	_from_thread_started = false;
 
 	_set_state(STATE_RUNNING);
 	_create_pipes_and_pty();
@@ -38,6 +41,14 @@ PtyProxyWin::PtyProxyWin() {
 	_create_to_pty_thread();
 	_create_from_pty_thread();
 
+	while (!_to_thread_started || !_from_thread_started) {
+		std::unique_lock<std::mutex> lock(_start_complete_mutex);
+		_start_complete.wait(lock);
+	}
+
+	// TODO - wait on synchronization variable that indicates
+	//        both to and from threads have started.
+	
 	/*
     DWORD consoleMode {};
 	HANDLE console = { GetStdHandle(STD_OUTPUT_HANDLE) };
@@ -85,6 +96,20 @@ PtyProxyWin::_wake_to_thread() {
 	}
 	const std::lock_guard<std::mutex> lock(_to_mutex);
 	_to_ready.notify_all();
+}
+
+void
+PtyProxyWin::_notify_to_started() {
+	const std::lock_guard<std::mutex> lock(_start_complete_mutex);
+	_to_thread_started = true;
+	_start_complete.notify_all();
+}
+
+void
+PtyProxyWin::_notify_from_started() {
+	const std::lock_guard<std::mutex> lock(_start_complete_mutex);
+	_from_thread_started = true;
+	_start_complete.notify_all();
 }
 
 void
@@ -197,6 +222,7 @@ const static int MAX_READ_BUFFER = 1024;
 
 void
 PtyProxyWin::_run_from_thread() {
+	_notify_from_started();
 	while (_can_read()) {
 		DWORD read_bytes;
 		unsigned char buffer[MAX_READ_BUFFER] {};
@@ -216,6 +242,7 @@ PtyProxyWin::_can_write() {
 
 void
 PtyProxyWin::_run_to_thread() {
+	_notify_to_started();
 	while (_can_write()) {
 		std::unique_lock<std::mutex> lock(_to_mutex);
 		if (_to_buffer_pos == 0) {
