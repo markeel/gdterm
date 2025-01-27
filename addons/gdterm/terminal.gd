@@ -11,6 +11,7 @@ var bottom_panel_instance = null
 var current_theme = null
 var current_layout = null
 var active_theme = null
+var active_initial_cmds = null
 
 const THEME_EDITOR : int = 0
 const THEME_DARK   : int = 1
@@ -34,6 +35,12 @@ var layout_property_info = {
 	"hint_string": "main,bottom,both"
 }
 
+var initial_cmds_info = {
+	"name": "gdterm/initial_commands",
+	"type": TYPE_STRING,
+	"hint": PROPERTY_HINT_MULTILINE_TEXT,
+}
+
 func _on_settings_changed():
 	var settings = EditorInterface.get_editor_settings()
 	
@@ -43,7 +50,11 @@ func _on_settings_changed():
 	var layout = LAYOUT_MAIN
 	if settings.has_setting("gdterm/layout"):
 		layout = settings.get_setting("gdterm/layout")
+	var initial_cmds = String()
+	if settings.has_setting("gdterm/initial_commands"):
+		initial_cmds = settings.get_setting("gdterm/initial_commands")
 	_apply_theme(theme)
+	_apply_initial_cmds(initial_cmds)
 	_apply_layout(layout)
 
 func _apply_theme(theme):
@@ -101,6 +112,7 @@ func _apply_layout(layout):
 				main_panel_instance = MainPanel.instantiate()
 				if active_theme != null:
 					main_panel_instance.get_main().set_theme(active_theme)
+				main_panel_instance.get_main().set_initial_cmds(active_initial_cmds)
 				main_panel_instance.visible = show_main
 				EditorInterface.get_editor_main_screen().add_child(main_panel_instance)
 		if layout == LAYOUT_BOTTOM or layout == LAYOUT_BOTH:
@@ -108,6 +120,7 @@ func _apply_layout(layout):
 				bottom_panel_instance = BottomPanel.instantiate()
 				if active_theme != null:
 					bottom_panel_instance.set_theme(active_theme)
+					bottom_panel_instance.set_initial_cmds(active_initial_cmds)
 					bottom_panel_instance.theme_changed()
 				add_control_to_bottom_panel(bottom_panel_instance, "Terminal")
 		if layout == LAYOUT_MAIN:
@@ -123,6 +136,14 @@ func _apply_layout(layout):
 				EditorInterface.get_editor_main_screen().add_child(main_panel_instance)
 		current_layout = layout
 
+func _apply_initial_cmds(cmds):
+	if active_initial_cmds != cmds:
+		if main_panel_instance != null:
+			main_panel_instance.get_main().set_initial_cmds(cmds)
+		if bottom_panel_instance != null:
+			bottom_panel_instance.set_initial_cmds(cmds)
+		active_initial_cmds = cmds
+
 func _enter_tree() -> void:
 	var settings = EditorInterface.get_editor_settings()
 	
@@ -134,6 +155,13 @@ func _enter_tree() -> void:
 		theme = settings.get_setting("gdterm/theme")
 	_apply_theme(theme)
 	
+	var initial_cmds = String()
+	if settings.has_setting("gdterm/initial_commands"):
+		initial_cmds = settings.get_setting("gdterm/initial_commands")
+	else:
+		settings.set_setting("gdterm/initial_commands", initial_cmds)
+	_apply_initial_cmds(initial_cmds)
+
 	var layout = LAYOUT_MAIN
 	if settings.has_setting("gdterm/layout"):
 		layout = settings.get_setting("gdterm/layout")
@@ -145,6 +173,7 @@ func _enter_tree() -> void:
 	# Make sure shows as enum
 	settings.add_property_info(theme_property_info)
 	settings.add_property_info(layout_property_info)
+	settings.add_property_info(initial_cmds_info)
 	settings.settings_changed.connect(_on_settings_changed)
 	
 	# Hide the main panel. Very much required.
@@ -154,6 +183,7 @@ func _exit_tree() -> void:
 	if main_panel_instance:
 		main_panel_instance.queue_free()
 	if bottom_panel_instance:
+		remove_control_from_bottom_panel(bottom_panel_instance)
 		bottom_panel_instance.queue_free()
 
 func _has_main_screen():

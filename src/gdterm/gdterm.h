@@ -227,6 +227,7 @@ namespace godot {
 		virtual void show_cursor(bool flag) override;
 		virtual void resize_complete() override;
 		virtual void exited() override;
+		virtual void log_pty_input(const char * data) override;
 		virtual void log_vt_handler_input(unsigned char * data, int data_len) override;
 
 	private:

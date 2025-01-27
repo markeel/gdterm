@@ -67,6 +67,7 @@ class TermRenderer {
 		virtual void show_cursor(bool flag) = 0;
 		virtual void resize_complete() = 0;
 		virtual void exited() = 0;
+		virtual void log_pty_input(const char * data) = 0;
 		virtual void log_vt_handler_input(unsigned char * data, int data_len) = 0;
 };
 
@@ -95,6 +96,7 @@ public:
 	void _update_cursor(int row, int col);
 	void _play_bell();
 	void _show_cursor(bool flag);
+	void _log_pty_input(const char * msg);
 
 protected:
 	TermRenderer * _renderer;
