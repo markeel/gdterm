@@ -246,10 +246,14 @@ fill_term_string(char * buffer, int buf_len, wchar_t unicode, godot::Key key) {
 			strcpy(buffer, "\t");
 			break;
 		case godot::Key::KEY_BACKSPACE:
-			strcpy(buffer, TMT_KEY_BACKSPACE);
+			if (ctrl) {
+				strcpy(buffer, TMT_KEY_BACKSPACE);
+			} else {
+				strcpy(buffer, "\x7f");
+			}
 			break;
 		case godot::Key::KEY_DELETE:
-			strcpy(buffer, "\x7f");
+			strcpy(buffer, "\x1b[3~");
 			break;
 		case godot::Key::KEY_KP_ENTER:
 			strcpy(buffer, "\r");
