@@ -1172,7 +1172,6 @@ GDTerm::screen_add_glyph(const char * c, int len) {
 	GDTermLineDirective d;
 	d.kind = DIRECTIVE_WRITE_GLYPH;
 	d.data.text = std::string(c, len);
-	//fprintf(stderr, "%d: glyph='%s'\n", len, d.data.text.c_str());
 	if (_pending_target == TARGET_SCREEN) {
 		if ((_pending_screen_row >= 0) && (_pending_screen_row < _pending_screen_lines.size())) {
 			_pending_screen_lines[_pending_screen_row].glyph_length += 1;

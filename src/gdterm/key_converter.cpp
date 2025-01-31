@@ -361,7 +361,6 @@ lookup_term_string(godot::Key key) {
 	} else if ((code >= godot::Key::KEY_0) && (code <= godot::Key::KEY_9)) {
 		return_val = numbers[code-godot::Key::KEY_0];
 	} else if ((code >= godot::Key::KEY_COLON) && (code <= godot::Key::KEY_QUESTION)) {
-		fprintf(stderr, "code=%02x\n", code);
 		return_val = symbols2[code-godot::Key::KEY_COLON];
 	} else if ((code >= godot::Key::KEY_BRACKETLEFT) && (code <= godot::Key::KEY_QUOTELEFT)) {
 		return_val = symbols3[code-godot::Key::KEY_BRACKETLEFT];

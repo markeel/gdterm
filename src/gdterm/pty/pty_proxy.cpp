@@ -6,19 +6,13 @@
 
 extern "C" {
 	#include <libtmt/tmt.h>
+	#include <libtmt/u8mbtowc.h>
 
-	int fill_chars(char * buf, TMTCHAR * chars, int start, int end) {
+	int fill_chars(char * buf, size_t buf_size, TMTCHAR * chars, int start, int end) {
 		char * pos = buf;
 		int total = 0;
 		for (int i=start; i<end; i++) {
-			mbstate_t state;
-			size_t len;
-			memset(&state, 0, sizeof(mbstate_t));
-#ifdef USE_WCRTOMB_S
-            wcrtomb_s(&len, pos, end-total, chars[i].c, &state);
-#else
-            len = wcrtomb(pos, chars[i].c, &state);
-#endif
+			int len = wc_to_utf8(pos, buf_size-total, chars[i].c);
 		    if (len > 0) {
 			   pos += len;
 			   total += len;
@@ -158,9 +152,9 @@ extern "C" {
 	}
 
 	int add_glyph_chars(int char_start_idx, int cidx, TMTLINE * line, PtyProxy * proxy) {
-		int maxchar = MB_CUR_MAX * (cidx - char_start_idx);
+		int maxchar = sizeof(tmt_wchar_t) * (cidx - char_start_idx);
 		char *buffer = (char *)malloc(maxchar);
-		int numchars = fill_chars(buffer, line->chars, char_start_idx, cidx);
+		int numchars = fill_chars(buffer, maxchar, line->chars, char_start_idx, cidx);
 		if (numchars > 0) {
 			proxy->_screen_add_glyph(buffer, numchars);
 		}
