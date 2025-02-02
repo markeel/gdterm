@@ -7,6 +7,7 @@ if conf.CheckFunc('mbstowcs_s'):
 conf.Finish()
 
 ptyenv = env.Clone()
+ptyenv.Append(CPPDEFINES = "FORCE_UTF8")
 
 cpppath = [ ".", "thirdparty" ]
 sources = Glob("thirdparty/libtmt/*.c")
@@ -15,7 +16,6 @@ if env["platform"] == "windows":
 	sources.extend(Glob("platform/windows/*.cpp"))
 	cpppath.extend([ "platform/windows" ])
 	ptyenv.Append(CCFLAGS="-DUNICODE")
-	ptyenv.Append(CPPDEFINES = "FORCE_UTF8")
 else:
 	env.Append(CPPDEFINES = "USE_PRIMARY_CLIPBOARD")
 	sources.extend(Glob("platform/linux/*.cpp"))

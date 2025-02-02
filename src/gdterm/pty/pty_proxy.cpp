@@ -152,7 +152,7 @@ extern "C" {
 	}
 
 	int add_glyph_chars(int char_start_idx, int cidx, TMTLINE * line, PtyProxy * proxy) {
-		int maxchar = sizeof(tmt_wchar_t) * (cidx - char_start_idx);
+		int maxchar = sizeof(tmt_wchar_t);
 		char *buffer = (char *)malloc(maxchar);
 		int numchars = fill_chars(buffer, maxchar, line->chars, char_start_idx, cidx);
 		if (numchars > 0) {
@@ -169,6 +169,7 @@ extern "C" {
 		bool blink = false;
 		bool reverse = false;
 		bool invisible = false;
+		bool fullwidth = false;
 		for (int lidx=0; lidx<screen->nline; lidx++) {
 			tmt_color_t fg = tmt_color_t { TMT_COLOR_DEFAULT, 0, 0, 0 };
 			tmt_color_t bg = tmt_color_t { TMT_COLOR_DEFAULT, 0, 0, 0 };
@@ -177,7 +178,23 @@ extern "C" {
 				proxy->_screen_set_row(lidx);
 				int char_start_idx = 0;
 				for (int cidx=0; cidx<screen->ncol; cidx++) {
-					char_start_idx = add_glyph_chars(char_start_idx, cidx, line, proxy);
+					if (line->chars[char_start_idx].char_type == TMT_IGNORED) {
+						char_start_idx = cidx;
+					} else {
+						char_start_idx = add_glyph_chars(char_start_idx, cidx, line, proxy);
+					}
+					if (line->chars[cidx].char_type == TMT_FULLWIDTH) {
+						if (!fullwidth) {
+							fullwidth = true;
+							proxy->_screen_add_tag(LineTag { LineTagCode::FULLWIDTH, 0, 0, 0 });
+						}
+					}
+					if (line->chars[cidx].char_type == TMT_HALFWIDTH) {
+						if (fullwidth) {
+							fullwidth = false;
+							proxy->_screen_remove_tag(LineTag { LineTagCode::FULLWIDTH, 0, 0, 0 });
+						}
+					}
 					if (line->chars[cidx].a.bold != bold) {
 						bold = line->chars[cidx].a.bold;
 						if (bold) { proxy->_screen_add_tag(LineTag { LineTagCode::BOLD, 0, 0, 0 }); } else { proxy->_screen_remove_tag(LineTag { LineTagCode::BOLD, 0, 0, 0 }); }
