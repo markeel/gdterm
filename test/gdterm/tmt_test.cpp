@@ -298,14 +298,19 @@ class TmtResult {
 			results.push_back(s.str());
 		}
 
-		void check_result_at(int rpos, const std::string & exp) {
+		void clear() {
+			results.clear();
+		}
+
+		bool check_result_at(int rpos, const std::string & exp) {
 			if (results[rpos] == exp) {
-				return;
+				return true;
 			}
 			fprintf(stderr, "%s:%d result mismatch on result (%d):\n", _file, _line, rpos);
 			fprintf(stderr, "   had: %s\n", results[rpos].c_str());
 			fprintf(stderr, "wanted: %s\n", exp.c_str());
 			_failure_count += 1;
+			return false;
 		}
 
 		void check_result(const char * expected) {
@@ -321,12 +326,14 @@ class TmtResult {
 				int comma_pos = e.find(",", exp_pos);
 				if (comma_pos == std::string::npos) {
 					std::string exp = e.substr(exp_pos);
-					check_result_at(res_pos, exp);
+					if (!check_result_at(res_pos, exp))
+						return;
 					res_pos += 1;
 					break;
 				} 
 				std::string exp = e.substr(exp_pos, comma_pos-exp_pos);
-				check_result_at(res_pos, exp);
+				if (!check_result_at(res_pos, exp))
+					return;
 				exp_pos = comma_pos+1;
 				res_pos += 1;
 			}
@@ -394,17 +401,22 @@ extern "C" {
 }
 
 void
-test_write_string(const char * file, int line, const char * input, const char * expected) {
+test_write_string(const char * file, int line, const char * setup, const char * input, const char * expected) {
 	_attempt_count += 1;
 	TmtResult result(file, line);
 	TMT * tmt = tmt_open(24, 80, test_write_string_cb, (void *)&result, NULL);
+	if (setup != NULL) {
+		tmt_write(tmt, setup, strlen(setup));
+		result.clear();
+	}
 	tmt_write(tmt, input, strlen(input));
 	result.check_result(expected);
+	tmt_close(tmt);
 }
 
 void
 test_tmt_write() {
-	test_write_string(__FILE__, __LINE__, "abc😃efg\r\n", 
+	test_write_string(__FILE__, __LINE__, NULL, "abc😃efg\r\n", 
 			"screen-line(0):' '/80,"
 			"screen-line(1):' '/80,"
 			"screen-line(2):' '/80,"
@@ -432,6 +444,69 @@ test_tmt_write() {
 			"move(0/0),"
 			"screen-line(0):'a''b''c''😃'(1f603)[full]' '[ignore]'e''f''g'' '/72,"
 			"move(1/0)"
+			);
+	//                                      1 2 3 4 5 6 7 8 910111213
+	test_write_string(__FILE__, __LINE__, 
+			"a\r\nb\r\nc\r\nd\r\ne\r\nf\r\ng\r\nh\r\ni\r\nj\r\nk\r\nl\r\nm\r\nn\r\no\r\np\r\nq\r\nr\r\ns\r\nt\r\nu\r\nv\r\nw\r\n", 
+		    "                                                                               😃\r\n", 
+			"scroll-line(0):'a'' '/79,"
+			"scroll-line(0):'b'' '/79,"
+			"screen-line(0):'c'' '/79,"
+			"screen-line(1):'d'' '/79,"
+			"screen-line(2):'e'' '/79,"
+			"screen-line(3):'f'' '/79,"
+			"screen-line(4):'g'' '/79,"
+			"screen-line(5):'h'' '/79,"
+			"screen-line(6):'i'' '/79,"
+			"screen-line(7):'j'' '/79,"
+			"screen-line(8):'k'' '/79,"
+			"screen-line(9):'l'' '/79,"
+			"screen-line(10):'m'' '/79,"
+			"screen-line(11):'n'' '/79,"
+			"screen-line(12):'o'' '/79,"
+			"screen-line(13):'p'' '/79,"
+			"screen-line(14):'q'' '/79,"
+			"screen-line(15):'r'' '/79,"
+			"screen-line(16):'s'' '/79,"
+			"screen-line(17):'t'' '/79,"
+			"screen-line(18):'u'' '/79,"
+			"screen-line(19):'v'' '/79,"
+			"screen-line(20):'w'' '/79,"
+			"screen-line(21):' '/80,"
+			"screen-line(22):'😃'(1f603)[full]' '[ignore]' '/78,"
+			"screen-line(23):' '/80"
+			);
+	test_write_string(__FILE__, __LINE__, 
+			"a\r\nb\r\nc\r\nd\r\ne\r\nf\r\ng\r\nh\r\ni\r\nj\r\nk\r\nl\r\nm\r\nn\r\no\r\np\r\nq\r\nr\r\ns\r\nt\r\nu\r\nv\r\nw\r\n"
+			"x😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃😃",
+		    "😃\r\n", 
+			"scroll-line(0):'a'' '/79,"
+			"scroll-line(0):'b'' '/79,"
+			"screen-line(0):'c'' '/79,"
+			"screen-line(1):'d'' '/79,"
+			"screen-line(2):'e'' '/79,"
+			"screen-line(3):'f'' '/79,"
+			"screen-line(4):'g'' '/79,"
+			"screen-line(5):'h'' '/79,"
+			"screen-line(6):'i'' '/79,"
+			"screen-line(7):'j'' '/79,"
+			"screen-line(8):'k'' '/79,"
+			"screen-line(9):'l'' '/79,"
+			"screen-line(10):'m'' '/79,"
+			"screen-line(11):'n'' '/79,"
+			"screen-line(12):'o'' '/79,"
+			"screen-line(13):'p'' '/79,"
+			"screen-line(14):'q'' '/79,"
+			"screen-line(15):'r'' '/79,"
+			"screen-line(16):'s'' '/79,"
+			"screen-line(17):'t'' '/79,"
+			"screen-line(18):'u'' '/79,"
+			"screen-line(19):'v'' '/79,"
+			"screen-line(20):'w'' '/79,"
+			"screen-line(21):'x''😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]'😃'(1f603)[full]' '[ignore]' ',"
+			"screen-line(22):'😃'(1f603)[full]' '[ignore]' '/78,"
+			"screen-line(23):' '/80,"
+			"move(23/0)"
 			);
 }
 

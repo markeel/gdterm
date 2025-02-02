@@ -169,8 +169,8 @@ extern "C" {
 		bool blink = false;
 		bool reverse = false;
 		bool invisible = false;
-		bool fullwidth = false;
 		for (int lidx=0; lidx<screen->nline; lidx++) {
+			bool fullwidth = false;
 			tmt_color_t fg = tmt_color_t { TMT_COLOR_DEFAULT, 0, 0, 0 };
 			tmt_color_t bg = tmt_color_t { TMT_COLOR_DEFAULT, 0, 0, 0 };
 			TMTLINE * line = screen->lines[lidx];
