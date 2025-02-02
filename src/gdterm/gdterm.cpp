@@ -623,6 +623,7 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 	bool invisible = false;
 	bool blinking = false;
 	bool underline = false;
+	bool fullwidth = false;
 
 	Ref<Font> cur_font = font;
 	Vector2 seg_pos = pos;
@@ -661,9 +662,14 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 			cur_fg = cur_bg;
 		}
 		if (kind == DIRECTIVE_WRITE_GLYPH) {
-			// TODO - Check that LC_CTYPE is UTF8
 			String glyph = String::utf8(line.dirs[j].data.text.c_str(), line.dirs[j].data.text.length());
-			Rect2 rect = Rect2(seg_pos.x, seg_pos.y-font_ascent, _font_space_size.x, font_height);
+			float glyph_width = _font_space_size.x;
+			int col_width = 1;
+			if (fullwidth) {
+				glyph_width *= 2.0;
+				col_width = 2;
+			}
+			Rect2 rect = Rect2(seg_pos.x, seg_pos.y-font_ascent, glyph_width, font_height);
 			draw_rect(rect, cur_bg, true);
 			if (outline_cursor) {
 				draw_rect(rect, cur_fg, false);
@@ -672,8 +678,8 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 			if (underline) {
 				draw_line(Vector2(seg_pos.x, seg_pos.y + font_underline), Vector2(seg_pos.x + _font_space_size.x, seg_pos.y + font_underline), cur_fg);
 			}
-			seg_pos.x += _font_space_size.x;
-			col += 1;
+			seg_pos.x += glyph_width;
+			col += col_width;
 		} else if (kind == DIRECTIVE_SET_STATE) {
 			LineTag tag = line.dirs[j].data.tag;
 			float tag_red = CLAMP(tag.red, 0, 255) / 255.0f;
@@ -697,6 +703,9 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 					break;
 				case UNDERLINE:
 					underline = true;
+					break;
+				case FULLWIDTH:
+					fullwidth = true;
 					break;
 				case FG_COLOR_BLACK:
 					fg_color = black;
@@ -821,6 +830,9 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 					break;
 				case UNDERLINE:
 					underline = false;
+					break;
+				case FULLWIDTH:
+					fullwidth = false;
 					break;
 				case FG_COLOR_BLACK:
 				case FG_COLOR_RED:
@@ -1172,7 +1184,6 @@ GDTerm::screen_add_glyph(const char * c, int len) {
 	GDTermLineDirective d;
 	d.kind = DIRECTIVE_WRITE_GLYPH;
 	d.data.text = std::string(c, len);
-	//fprintf(stderr, "%d: glyph='%s'\n", len, d.data.text.c_str());
 	if (_pending_target == TARGET_SCREEN) {
 		if ((_pending_screen_row >= 0) && (_pending_screen_row < _pending_screen_lines.size())) {
 			_pending_screen_lines[_pending_screen_row].glyph_length += 1;

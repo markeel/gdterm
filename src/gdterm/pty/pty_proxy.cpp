@@ -6,19 +6,13 @@
 
 extern "C" {
 	#include <libtmt/tmt.h>
+	#include <libtmt/u8mbtowc.h>
 
-	int fill_chars(char * buf, TMTCHAR * chars, int start, int end) {
+	int fill_chars(char * buf, size_t buf_size, TMTCHAR * chars, int start, int end) {
 		char * pos = buf;
 		int total = 0;
 		for (int i=start; i<end; i++) {
-			mbstate_t state;
-			size_t len;
-			memset(&state, 0, sizeof(mbstate_t));
-#ifdef USE_WCRTOMB_S
-            wcrtomb_s(&len, pos, end-total, chars[i].c, &state);
-#else
-            len = wcrtomb(pos, chars[i].c, &state);
-#endif
+			int len = wc_to_utf8(pos, buf_size-total, chars[i].c);
 		    if (len > 0) {
 			   pos += len;
 			   total += len;
@@ -158,9 +152,9 @@ extern "C" {
 	}
 
 	int add_glyph_chars(int char_start_idx, int cidx, TMTLINE * line, PtyProxy * proxy) {
-		int maxchar = MB_CUR_MAX * (cidx - char_start_idx);
+		int maxchar = sizeof(tmt_wchar_t);
 		char *buffer = (char *)malloc(maxchar);
-		int numchars = fill_chars(buffer, line->chars, char_start_idx, cidx);
+		int numchars = fill_chars(buffer, maxchar, line->chars, char_start_idx, cidx);
 		if (numchars > 0) {
 			proxy->_screen_add_glyph(buffer, numchars);
 		}
@@ -176,6 +170,7 @@ extern "C" {
 		bool reverse = false;
 		bool invisible = false;
 		for (int lidx=0; lidx<screen->nline; lidx++) {
+			bool fullwidth = false;
 			tmt_color_t fg = tmt_color_t { TMT_COLOR_DEFAULT, 0, 0, 0 };
 			tmt_color_t bg = tmt_color_t { TMT_COLOR_DEFAULT, 0, 0, 0 };
 			TMTLINE * line = screen->lines[lidx];
@@ -183,7 +178,23 @@ extern "C" {
 				proxy->_screen_set_row(lidx);
 				int char_start_idx = 0;
 				for (int cidx=0; cidx<screen->ncol; cidx++) {
-					char_start_idx = add_glyph_chars(char_start_idx, cidx, line, proxy);
+					if (line->chars[char_start_idx].char_type == TMT_IGNORED) {
+						char_start_idx = cidx;
+					} else {
+						char_start_idx = add_glyph_chars(char_start_idx, cidx, line, proxy);
+					}
+					if (line->chars[cidx].char_type == TMT_FULLWIDTH) {
+						if (!fullwidth) {
+							fullwidth = true;
+							proxy->_screen_add_tag(LineTag { LineTagCode::FULLWIDTH, 0, 0, 0 });
+						}
+					}
+					if (line->chars[cidx].char_type == TMT_HALFWIDTH) {
+						if (fullwidth) {
+							fullwidth = false;
+							proxy->_screen_remove_tag(LineTag { LineTagCode::FULLWIDTH, 0, 0, 0 });
+						}
+					}
 					if (line->chars[cidx].a.bold != bold) {
 						bold = line->chars[cidx].a.bold;
 						if (bold) { proxy->_screen_add_tag(LineTag { LineTagCode::BOLD, 0, 0, 0 }); } else { proxy->_screen_remove_tag(LineTag { LineTagCode::BOLD, 0, 0, 0 }); }

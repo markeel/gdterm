@@ -24,11 +24,11 @@ class TestRenderer : public TermRenderer {
 		}
 
 		virtual void screen_add_tag(LineTag tag) {
-			fprintf(stdout, "screen_add_tag(%d)\n", tag);
+			fprintf(stdout, "screen_add_tag(%d)\n", tag.code);
 		}
 
 		virtual void screen_remove_tag(LineTag tag) {
-			fprintf(stdout, "screen_remove_tag(%d)\n", tag);
+			fprintf(stdout, "screen_remove_tag(%d)\n", tag.code);
 		}
 
 		virtual void screen_add_glyph(const char * c, int len) {
@@ -65,6 +65,10 @@ class TestRenderer : public TermRenderer {
 
 		virtual void exited() {
 			fprintf(stdout, "exited()\n");
+		}
+
+		virtual void log_pty_input(const char * c) {
+			fprintf(stdout, "log_pty_input(%s)\n", c);
 		}
 
 		virtual void log_vt_handler_input(unsigned char * c, int len) {
