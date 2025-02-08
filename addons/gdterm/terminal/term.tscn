@@ -1,9 +1,35 @@
-[gd_scene load_steps=5 format=3 uid="uid://b62ioxhftvwg7"]
+[gd_scene load_steps=8 format=3 uid="uid://b62ioxhftvwg7"]
 
 [ext_resource type="Script" path="res://addons/gdterm/terminal/term.gd" id="1_o0o4i"]
-[ext_resource type="FontFile" uid="uid://be4ro0vum8y1d" path="res://addons/gdterm/fonts/SourceCodePro-Medium.ttf" id="2_vxjtp"]
-[ext_resource type="FontFile" uid="uid://be2ygu4u3hve7" path="res://addons/gdterm/fonts/SourceCodePro-Light.ttf" id="3_308uo"]
-[ext_resource type="FontFile" uid="uid://dro74qegmjqgl" path="res://addons/gdterm/fonts/SourceCodePro-Bold.ttf" id="4_roq5w"]
+
+[sub_resource type="SystemFont" id="SystemFont_fia1r"]
+font_names = PackedStringArray("Noto Color Emoji")
+subpixel_positioning = 0
+
+[sub_resource type="SystemFont" id="SystemFont_bdf21"]
+fallbacks = Array[Font]([SubResource("SystemFont_fia1r")])
+font_names = PackedStringArray("Monospace")
+subpixel_positioning = 0
+
+[sub_resource type="SystemFont" id="SystemFont_o16vk"]
+font_names = PackedStringArray("Noto Color Emoji")
+subpixel_positioning = 0
+
+[sub_resource type="SystemFont" id="SystemFont_ovgsd"]
+fallbacks = Array[Font]([SubResource("SystemFont_o16vk")])
+font_names = PackedStringArray("Monospace")
+font_weight = 100
+subpixel_positioning = 0
+
+[sub_resource type="SystemFont" id="SystemFont_w8l23"]
+font_names = PackedStringArray("Noto Color Emoji")
+subpixel_positioning = 0
+
+[sub_resource type="SystemFont" id="SystemFont_cxegq"]
+fallbacks = Array[Font]([SubResource("SystemFont_w8l23")])
+font_names = PackedStringArray("Monospace")
+font_weight = 700
+subpixel_positioning = 0
 
 [node name="term" type="HBoxContainer"]
 script = ExtResource("1_o0o4i")
@@ -33,9 +59,9 @@ item_8/text = "New Right"
 item_8/id = 6
 
 [node name="GDTerm" type="GDTerm" parent="."]
-font = ExtResource("2_vxjtp")
-dim_font = ExtResource("3_308uo")
-bold_font = ExtResource("4_roq5w")
+font = SubResource("SystemFont_bdf21")
+dim_font = SubResource("SystemFont_ovgsd")
+bold_font = SubResource("SystemFont_cxegq")
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 1

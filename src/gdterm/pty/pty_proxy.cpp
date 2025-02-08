@@ -14,9 +14,16 @@ extern "C" {
 		for (int i=start; i<end; i++) {
 			int len = wc_to_utf8(pos, buf_size-total, chars[i].c);
 		    if (len > 0) {
-			   pos += len;
-			   total += len;
-		   }
+			    pos += len;
+			    total += len;
+		    }
+			for (int mark=0; mark<chars[i].num_marks; mark++) {
+				len = wc_to_utf8(pos, buf_size-total, chars[i].marks[mark]);
+				if (len > 0) {
+					pos += len;
+					total += len;
+				}
+			}
 		}
 		return total;
 	}
@@ -151,8 +158,16 @@ extern "C" {
 		return tag;
 	}
 
+	int get_num_codes(int char_start_idx, int cidx, TMTLINE * line) {
+		int num_codes = 0;
+		for (int cpos=char_start_idx; cpos<cidx; cpos++) {
+			num_codes += 1 + line->chars[cpos].num_marks;
+		}
+		return num_codes;
+	}
+
 	int add_glyph_chars(int char_start_idx, int cidx, TMTLINE * line, PtyProxy * proxy) {
-		int maxchar = sizeof(tmt_wchar_t);
+		int maxchar = sizeof(tmt_wchar_t) * get_num_codes(char_start_idx, cidx, line);
 		char *buffer = (char *)malloc(maxchar);
 		int numchars = fill_chars(buffer, maxchar, line->chars, char_start_idx, cidx);
 		if (numchars > 0) {
@@ -190,6 +205,12 @@ extern "C" {
 						}
 					}
 					if (line->chars[cidx].char_type == TMT_HALFWIDTH) {
+						if (fullwidth) {
+							fullwidth = false;
+							proxy->_screen_remove_tag(LineTag { LineTagCode::FULLWIDTH, 0, 0, 0 });
+						}
+					}
+					if (line->chars[cidx].char_type == TMT_FORMATTER) {
 						if (fullwidth) {
 							fullwidth = false;
 							proxy->_screen_remove_tag(LineTag { LineTagCode::FULLWIDTH, 0, 0, 0 });

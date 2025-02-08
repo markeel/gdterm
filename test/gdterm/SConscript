@@ -11,4 +11,6 @@ tmt_test_env = env.Clone()
 tmt_test_env.Append(CPPPATH="#src/gdterm/pty/thirdparty")
 tmt_test = tmt_test_env.Program(target="tmt_test", source="tmt_test.cpp", LIB=ptylib)
 
-Return("proxy_test", "show_options", "tmt_test")
+utf8_to_unicode = tmt_test_env.Program(target="utf8_to_unicode", source="utf8_to_unicode.cpp", LIB=ptylib)
+
+Return("proxy_test", "show_options", "tmt_test", "utf8_to_unicode")

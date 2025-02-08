@@ -16,8 +16,10 @@ else:
 ptylib = SConscript("src/gdterm/pty/SConscript", variant_dir="build/gdterm/pty", duplicate=0, exports="env")
 library = SConscript("src/gdterm/SConscript", variant_dir="build/gdterm", duplicate=0, exports=["env", "name", "ptylib"])
 tests = SConscript("test/gdterm/SConscript", variant_dir="build/test", duplicate=0, exports=["env", "ptylib"])
+tools = SConscript("tool/gdterm/SConscript", variant_dir="build/tool", duplicate=0, exports=["env"])
 
 env.Alias('tests', tests)
+env.Alias('tools', tools)
 addon_lib = "addons/gdterm/bin/{}".format(name)
 Command(addon_lib, library, Copy('$TARGET', '$SOURCE'))
 Default(addon_lib, "compile_commands.json")
