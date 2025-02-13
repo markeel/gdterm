@@ -66,20 +66,31 @@ class TmtResult {
 					int rep=0;
 					for (int cidx=0; cidx<screen->ncol; cidx++) {
 						std::stringstream cur;
-					    wchar_t wc = line->chars[cidx].c;	
+					    tmt_wchar_t wc = line->chars[cidx].c;	
 						if (wc < 0x20) {
 							cur << "'" << std::hex << wc << "'";
 						} else  if (wc == ':') {
 							cur << "'" << std::hex << wc << "'";
 						} else {
-							char buffer[5];
-							int len = wc_to_utf8(buffer, 4, wc);
+							int max_len = 1+4*(1+line->chars[cidx].num_marks);
+							char * buffer = (char *)malloc(max_len);
+							int len = wc_to_utf8(buffer, max_len, wc);
+							std::stringstream hex_buf;
+							hex_buf << std::hex << wc;
+							char * buf_pos = buffer+len;
+							for (int mark_pos=0; mark_pos<line->chars[cidx].num_marks; mark_pos++) {
+								size_t mark_len = wc_to_utf8(buf_pos, max_len-len, line->chars[cidx].marks[mark_pos]);
+								hex_buf << " " << std::hex << line->chars[cidx].marks[mark_pos];
+								buf_pos += mark_len;
+								len += mark_len;
+							}
 							buffer[len] = '\0';
 							if (wc > 0x7f) {
-								cur << "'" << buffer << "'(" << std::hex << wc << ")";
+								cur << "'" << buffer << "'(" << hex_buf.str() << ")";
 							} else {
 								cur << "'" << buffer << "'";
 							}
+							free(buffer);
 						}
 						int num_attrs = 0;
 						if (line->chars[cidx].char_type == TMT_FULLWIDTH) {
@@ -89,6 +100,11 @@ class TmtResult {
 						if (line->chars[cidx].char_type == TMT_IGNORED) {
 							if (num_attrs == 0) { cur << "["; } else { cur << ","; }
 							cur << "ignore";
+							num_attrs += 1;
+						}
+						if (line->chars[cidx].char_type == TMT_FORMATTER) {
+							if (num_attrs == 0) { cur << "["; } else { cur << ","; }
+							cur << "format";
 							num_attrs += 1;
 						}
 						if (line->chars[cidx].a.bold) {
@@ -416,6 +432,15 @@ test_write_string(const char * file, int line, const char * setup, const char * 
 
 void
 test_tmt_write() {
+	test_write_string(__FILE__,__LINE__, "\r", "À\r\n",
+			"screen-line(0):'À'' '/79,"
+			"move(1/0)");
+	test_write_string(__FILE__,__LINE__, "\r", "؀21\r\n",
+			"screen-line(0):'؀2'(600 32)'1'' '/78,"
+			"move(1/0)");
+	test_write_string(__FILE__,__LINE__, "\r", "🏌🏼‍♂️\r\n",
+			"screen-line(0):'🏌'(1f3cc)'🏼'(1f3fc)[full]' '[ignore]'‍♂️'(200d 2642 fe0f)' '/76,"
+			"move(1/0)");
 	test_write_string(__FILE__, __LINE__, NULL, "abc😃efg\r\n", 
 			"screen-line(0):' '/80,"
 			"screen-line(1):' '/80,"
@@ -509,9 +534,36 @@ test_tmt_write() {
 			"move(23/0)"
 			);
 }
+ 
+void
+test_wc_convert(const char * file, int line, tmt_wchar_t wc, unsigned char * list, size_t len) {
+	unsigned char buffer[5];
+	int actual = wc_to_utf8((char *)buffer, 5, wc);
+	if (actual != len) {
+		fprintf(stderr, "%s:%d comparison failed: mismatched len, had=%d, expected=%zu\n", file, line, actual, len);
+		_failure_count += 1;
+		return;
+	}
+
+	for (int i=0; i<len; i++) {
+		if (buffer[i] != list[i]) {
+			fprintf(stderr, "%s:%d comparison failed: had[%d]=%hhx, expected[%d]=%hhx\n", file, line, i, buffer[i], i, list[i]);
+			_failure_count += 1;
+			return;
+		}
+	}
+}
+
+static unsigned char ucnvt_200d_to_utf8[] = { 0xE2, 0x80, 0x8d };
+
+void
+test_wc_to_utf8() {
+	test_wc_convert(__FILE__, __LINE__, 0x200d, ucnvt_200d_to_utf8, sizeof(ucnvt_200d_to_utf8)); 
+}
 
 int
 main(int argc, char * argv[]) {
+	test_wc_to_utf8();
 	test_wide_lookup();
 	test_tmt_write();
 	printf("Tests attempted: %d\n", _attempt_count);

@@ -32,13 +32,14 @@ item_7/id = 5
 item_8/text = "New Right"
 item_8/id = 6
 
-[node name="GDTerm" type="GDTerm" parent="."]
+[node name="GDTerm" type="GDTerm" parent="." node_paths=PackedStringArray("shortcut_context")]
 font = ExtResource("2_vxjtp")
 dim_font = ExtResource("3_308uo")
 bold_font = ExtResource("4_roq5w")
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 1
+shortcut_context = NodePath("..")
 
 [node name="scrollbar" type="VScrollBar" parent="."]
 custom_minimum_size = Vector2(20, 0)
