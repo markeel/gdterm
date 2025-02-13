@@ -66,14 +66,14 @@ class TmtResult {
 					int rep=0;
 					for (int cidx=0; cidx<screen->ncol; cidx++) {
 						std::stringstream cur;
-					    wchar_t wc = line->chars[cidx].c;	
+					    tmt_wchar_t wc = line->chars[cidx].c;	
 						if (wc < 0x20) {
 							cur << "'" << std::hex << wc << "'";
 						} else  if (wc == ':') {
 							cur << "'" << std::hex << wc << "'";
 						} else {
 							int max_len = 1+4*(1+line->chars[cidx].num_marks);
-							char buffer[max_len];
+							char * buffer = (char *)malloc(max_len);
 							int len = wc_to_utf8(buffer, max_len, wc);
 							std::stringstream hex_buf;
 							hex_buf << std::hex << wc;
@@ -90,6 +90,7 @@ class TmtResult {
 							} else {
 								cur << "'" << buffer << "'";
 							}
+							free(buffer);
 						}
 						int num_attrs = 0;
 						if (line->chars[cidx].char_type == TMT_FULLWIDTH) {

@@ -41,4 +41,20 @@ Enable the plugin
   - Copyright ©
   - Up arrow: Ʌ
   - Right pointing triangle: ▷ 
-  - 🕹️Alarm clock: 
+  - Joystick: 🕹️
+  - 😂 face with tears of joy 
+  - 👨‍👨‍👧‍👧 
+
+### Windows
+
+- dir
+- pwsh
+- ls
+- Paste a sample of unicode characters
+  - Copyright ©
+  - Right pointing triangle: ▷ 
+  - Joystick: 🕹️
+  - 😂 face with tears of joy 
+- Copy a unicode sequence and paste into wordpad
+
+

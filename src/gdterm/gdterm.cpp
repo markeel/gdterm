@@ -671,7 +671,7 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 			}
 			Vector2 glyph_size = cur_font->get_string_size(glyph, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size);
 			Rect2 rect = Rect2(seg_pos.x, seg_pos.y-font_ascent, glyph_size.x, font_height);
-			if (cur_bg != bg_color) {
+			if (cur_bg != background) {
 				draw_rect(rect, cur_bg, true);
 			}
 			if (outline_cursor) {
