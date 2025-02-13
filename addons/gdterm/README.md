@@ -140,6 +140,10 @@ markeel
 
 ## Version History
 
+* 0.99
+    * Support for Editor Settings
+    * Better support for Unicode
+
 * 0.95
     * Support for Windows
 
