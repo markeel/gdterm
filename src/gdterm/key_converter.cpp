@@ -1,9 +1,11 @@
 #include "key_converter.h"
 
-#include "thirdparty/libtmt/tmt.h"
+extern "C" {
+#include <libtmt/tmt.h>
+#include <libtmt/u8mbtowc.h>
+}
+#include <string.h>
 #include <cassert>
-#include <cstdio>
-#include <cstring>
 
 static const char * control_code[] = {
 	"\x00",
@@ -240,83 +242,83 @@ fill_term_string(char * buffer, int buf_len, wchar_t unicode, godot::Key key) {
 		case godot::Key::KEY_F35:
 			break;
 		case godot::Key::KEY_ESCAPE:
-			strcpy(buffer, "\x1b");
+			strcpy_s(buffer, buf_len, "\x1b");
 			break;
 		case godot::Key::KEY_TAB:
-			strcpy(buffer, "\t");
+			strcpy_s(buffer, buf_len, "\t");
 			break;
 		case godot::Key::KEY_BACKSPACE:
 			if (ctrl) {
-				strcpy(buffer, TMT_KEY_BACKSPACE);
+				strcpy_s(buffer, buf_len, TMT_KEY_BACKSPACE);
 			} else {
-				strcpy(buffer, "\x7f");
+				strcpy_s(buffer, buf_len, "\x7f");
 			}
 			break;
 		case godot::Key::KEY_DELETE:
-			strcpy(buffer, "\x1b[3~");
+			strcpy_s(buffer, buf_len, "\x1b[3~");
 			break;
 		case godot::Key::KEY_KP_ENTER:
-			strcpy(buffer, "\r");
+			strcpy_s(buffer, buf_len, "\r");
 			break;
 		case godot::Key::KEY_ENTER:
-			strcpy(buffer, "\r");
+			strcpy_s(buffer, buf_len, "\r");
 			break;
 		case godot::Key::KEY_INSERT:
-			strcpy(buffer, TMT_KEY_INSERT);
+			strcpy_s(buffer, buf_len, TMT_KEY_INSERT);
 			break;
 		case godot::Key::KEY_HOME:
-			strcpy(buffer, TMT_KEY_HOME);
+			strcpy_s(buffer, buf_len, TMT_KEY_HOME);
 			break;
 		case godot::Key::KEY_END:
-			strcpy(buffer, TMT_KEY_END);
+			strcpy_s(buffer, buf_len, TMT_KEY_END);
 			break;
 		case godot::Key::KEY_LEFT:
-			strcpy(buffer, TMT_KEY_LEFT);
+			strcpy_s(buffer, buf_len, TMT_KEY_LEFT);
 			break;
 		case godot::Key::KEY_UP:
-			strcpy(buffer, TMT_KEY_UP);
+			strcpy_s(buffer, buf_len, TMT_KEY_UP);
 			break;
 		case godot::Key::KEY_RIGHT:
-			strcpy(buffer, TMT_KEY_RIGHT);
+			strcpy_s(buffer, buf_len, TMT_KEY_RIGHT);
 			break;
 		case godot::Key::KEY_DOWN:
-			strcpy(buffer, TMT_KEY_DOWN);
+			strcpy_s(buffer, buf_len, TMT_KEY_DOWN);
 			break;
 		case godot::Key::KEY_PAGEUP:
-			strcpy(buffer, TMT_KEY_PAGE_UP);
+			strcpy_s(buffer, buf_len, TMT_KEY_PAGE_UP);
 			break;
 		case godot::Key::KEY_PAGEDOWN:
-			strcpy(buffer, TMT_KEY_PAGE_DOWN);
+			strcpy_s(buffer, buf_len, TMT_KEY_PAGE_DOWN);
 			break;
 		case godot::Key::KEY_F1:
-			strcpy(buffer, TMT_KEY_F1);
+			strcpy_s(buffer, buf_len, TMT_KEY_F1);
 			break;
 		case godot::Key::KEY_F2:
-			strcpy(buffer, TMT_KEY_F2);
+			strcpy_s(buffer, buf_len, TMT_KEY_F2);
 			break;
 		case godot::Key::KEY_F3:
-			strcpy(buffer, TMT_KEY_F3);
+			strcpy_s(buffer, buf_len, TMT_KEY_F3);
 			break;
 		case godot::Key::KEY_F4:
-			strcpy(buffer, TMT_KEY_F4);
+			strcpy_s(buffer, buf_len, TMT_KEY_F4);
 			break;
 		case godot::Key::KEY_F5:
-			strcpy(buffer, TMT_KEY_F5);
+			strcpy_s(buffer, buf_len, TMT_KEY_F5);
 			break;
 		case godot::Key::KEY_F6:
-			strcpy(buffer, TMT_KEY_F6);
+			strcpy_s(buffer, buf_len, TMT_KEY_F6);
 			break;
 		case godot::Key::KEY_F7:
-			strcpy(buffer, TMT_KEY_F7);
+			strcpy_s(buffer, buf_len, TMT_KEY_F7);
 			break;
 		case godot::Key::KEY_F8:
-			strcpy(buffer, TMT_KEY_F8);
+			strcpy_s(buffer, buf_len, TMT_KEY_F8);
 			break;
 		case godot::Key::KEY_F9:
-			strcpy(buffer, TMT_KEY_F9);
+			strcpy_s(buffer, buf_len, TMT_KEY_F9);
 			break;
 		case godot::Key::KEY_F10:
-			strcpy(buffer, TMT_KEY_F10);
+			strcpy_s(buffer, buf_len, TMT_KEY_F10);
 			break;
 		default:
 		{
@@ -324,10 +326,12 @@ fill_term_string(char * buffer, int buf_len, wchar_t unicode, godot::Key key) {
 				buffer[0] = code - godot::Key::KEY_AT;
 				buffer[1] = '\0';
 			} else {
-				mbstate_t state;
-				memset(&state, 0, sizeof(mbstate_t));
-				int len = wcrtomb(buffer, unicode, &state);
-				buffer[len] = '\0';
+				int len = wc_to_utf8(buffer, buf_len, unicode);
+				if (len < buf_len) {
+					buffer[len] = '\0';
+				} else {
+					buffer[buf_len-1] = '\0';
+				}
 			}
 		}
 	}
@@ -371,7 +375,6 @@ lookup_term_string(godot::Key key) {
 			case godot::Key::KEY_ESCAPE:
 				return "\x1b\x1b";
 			case godot::Key::KEY_TAB:
-				printf("filled in a tab\n");
 				return "\t";
 			case godot::Key::KEY_BACKSPACE:
 				return TMT_KEY_BACKSPACE;
