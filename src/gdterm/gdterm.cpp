@@ -810,7 +810,7 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 					bg_color = bright_white;
 					break;
 				case BG_COLOR_RGB:
-					bg_color = Color(tag.red, tag.green, tag.blue);
+					bg_color = Color(tag_red, tag_green, tag_blue);
 					break;
 				default:
 					break;

@@ -1,4 +1,5 @@
 
+#include <iomanip>
 #include <iostream>
 #include <stdlib.h>
 
@@ -43,4 +44,32 @@ main(int argc, char * argv[]) {
 	std::cout << "\033[105mBright Magenta\t\033[49mNon-Bright Magenta" << std::endl;
 	std::cout << "\033[106mBright Cyan\t\033[49mNon-Bright Cyan" << std::endl;
 	std::cout << "\033[107mBright White\t\033[49mNon-Bright White" << std::endl;
+
+	for (int block=0; block<6; block++) {
+		std::cout << "   ";
+		for (int hdr=0; hdr<6; hdr++) {
+			int idx = 16 + block * 36 + hdr;
+			std::cout << std::setw(3) << idx << " ";
+		}
+		std::cout << std::endl;
+		for (int row=0; row<6; row++) {
+			std::cout << "+" << row << " ";
+			for (int col=0; col<6; col++) {
+				int idx = 16 + (((block * 6) + row) * 6) + col;
+				std::cout << "\033[48;5;" << idx << "m   " << "\033[49m ";
+			}
+			std::cout << std::endl;
+		}
+		std::cout << std::endl;
+	}
+
+	std::cout << std::endl;
+	for (int i=232; i<256; i++) {
+		std::cout << std::setw(3) << i << " ";
+	}
+	std::cout << std::endl;
+	for (int i=232; i<256; i++) {
+		std::cout << "\033[48;5;" << i << "m   " << "\033[49m ";
+	}
+	std::cout << std::endl;
 }
