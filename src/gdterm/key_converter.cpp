@@ -162,8 +162,6 @@ fill_term_string(char * buffer, int buf_len, wchar_t unicode, godot::Key key) {
 		case godot::Key::KEY_NONE:
 		case godot::Key::KEY_SHIFT:
 		case godot::Key::KEY_CTRL:
-		case godot::Key::KEY_META:
-		case godot::Key::KEY_ALT:
 		case godot::Key::KEY_CAPSLOCK:
 		case godot::Key::KEY_NUMLOCK:
 		case godot::Key::KEY_SCROLLLOCK:
@@ -241,6 +239,8 @@ fill_term_string(char * buffer, int buf_len, wchar_t unicode, godot::Key key) {
 		case godot::Key::KEY_F34:
 		case godot::Key::KEY_F35:
 			break;
+		case godot::Key::KEY_META:
+		case godot::Key::KEY_ALT:			
 		case godot::Key::KEY_ESCAPE:
 			strcpy(buffer, "\x1b");
 			break;
