@@ -322,8 +322,14 @@ fill_term_string(char * buffer, int buf_len, wchar_t unicode, godot::Key key) {
 			break;
 		default:
 		{
-			if (ctrl && (code >= godot::Key::KEY_AT) && (code <= godot::Key::KEY_UNDERSCORE)) {
+			if (ctrl && (code >= godot::Key::KEY_AT) && (code <= godot::Key::KEY_BRACKETRIGHT)) {
 				buffer[0] = code - godot::Key::KEY_AT;
+				buffer[1] = '\0';
+			} else if (ctrl && (code == godot::Key::KEY_ASCIITILDE)) {
+				buffer[0] = '\036';
+				buffer[1] = '\0';
+			} else if (ctrl && (code == godot::Key::KEY_SLASH)) {
+				buffer[0] = '\037';
 				buffer[1] = '\0';
 			} else {
 				int len = wc_to_utf8(buffer, buf_len, unicode);
