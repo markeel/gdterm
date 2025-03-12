@@ -7,5 +7,8 @@ func theme_changed():
 func set_initial_cmds(cmds):
 	$term_container.set_initial_cmds(cmds)
 
+func set_alt_meta(setting):
+	$term_container.set_alt_meta(setting)
+
 func _on_theme_changed():
 	theme_changed()

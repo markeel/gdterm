@@ -152,12 +152,14 @@ const char * symbols4[] = {
 };
 
 void
-fill_term_string(char * buffer, int buf_len, wchar_t unicode, godot::Key key) {
-	assert(buf_len > sizeof(wchar_t));
+fill_term_string(char * buffer, int buf_len, wchar_t unicode, godot::Key key, bool send_alt_meta_as_esc) {
+	assert(buf_len > 5); // 4 for maximum unicode + 1 for prefixing with escape
 	buffer[0] = '\0';
 	const char * return_val = "";
 	int code = key & godot::KeyModifierMask::KEY_CODE_MASK; 
 	int ctrl = key & godot::KeyModifierMask::KEY_MASK_CTRL;
+	int alt = key & godot::KeyModifierMask::KEY_MASK_ALT;
+	int meta = key & godot::KeyModifierMask::KEY_MASK_META;
 	switch (code) {
 		case godot::Key::KEY_NONE:
 		case godot::Key::KEY_SHIFT:
@@ -322,21 +324,26 @@ fill_term_string(char * buffer, int buf_len, wchar_t unicode, godot::Key key) {
 			break;
 		default:
 		{
+			int pos = 0;
+			if ((meta || alt) && send_alt_meta_as_esc) {
+				buffer[pos++] = '\x1b';
+			}
+			int len = 1;
 			if (ctrl && (code >= godot::Key::KEY_AT) && (code <= godot::Key::KEY_BRACKETRIGHT)) {
-				buffer[0] = code - godot::Key::KEY_AT;
-				buffer[1] = '\0';
+				buffer[pos] = code - godot::Key::KEY_AT;
+				buffer[pos+1] = '\0';
 			} else if (ctrl && (code == godot::Key::KEY_ASCIITILDE)) {
-				buffer[0] = '\036';
-				buffer[1] = '\0';
+				buffer[pos] = '\036';
+				buffer[pos+1] = '\0';
 			} else if (ctrl && (code == godot::Key::KEY_SLASH)) {
-				buffer[0] = '\037';
-				buffer[1] = '\0';
+				buffer[pos] = '\037';
+				buffer[pos+1] = '\0';
 			} else {
-				int len = wc_to_utf8(buffer, buf_len, unicode);
+				len = wc_to_utf8(&buffer[pos], buf_len, unicode);
 				if (len < buf_len) {
-					buffer[len] = '\0';
+					buffer[pos+len] = '\0';
 				} else {
-					buffer[buf_len-1] = '\0';
+					buffer[pos+buf_len-1] = '\0';
 				}
 			}
 		}

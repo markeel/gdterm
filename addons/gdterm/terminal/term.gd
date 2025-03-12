@@ -27,6 +27,9 @@ func _ready():
 func apply_cmds(cmds):
 	_cmds = cmds
 
+func apply_alt_meta(setting):
+	$GDTerm.send_alt_meta_as_escape = setting
+
 func apply_theme():
 	if has_theme_color("background", "GDTerm"):     $GDTerm.background     = get_theme_color("background", "GDTerm")
 	if has_theme_color("foreground", "GDTerm"):     $GDTerm.foreground     = get_theme_color("foreground", "GDTerm")
