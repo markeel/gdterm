@@ -31,18 +31,23 @@ The following are its current limitations
 
 ### Dependencies
 
-* Developed against Godot 4.3-stable
+* Developed against Godot 4.4-stable but should still work with Godot 4.3-stable
 * Godot supported Linux or Windows distribution
 * Environment suitable for compiling an extension (if compiling from source)
   * See: https://docs.godotengine.org/en/stable/tutorials/scripting/gdextension/gdextension_cpp_example.html
 
 ### Installing
 
-Source is on GitHub and there is the latest stable version in the GD Asset Lib 
+Source is on GitHub and there is the latest stable version in the Godot AssetLib 
+
+Note: Precompiled binaries are only created when about to be released to the Godot AssetLib,
+so if you want to use the pre-compiled binaries, you should pull this down from a "release",
+and not just the "main" branch.
 
 To use the pre-compiled binaries:
 
 * git clone http://github.com/markeel/gdterm
+* git switch &lt;release tag&gt;
 * copy addons directory to the Godot project you need this extension
 
 To compile from source instead of using the pre-compiled library:
