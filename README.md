@@ -108,6 +108,12 @@ The settings are in the Gdterm section and are as follows:
 - Initial Commands: This is zero, one, or more commands that will be executed when a terminal window
                     starts up.  They are only executed when initially created or a "restart" is
                     performed on the window.
+
+- Send Alt/Meta as Escape: This checkbox enables sending an Escape character before sending the
+                           character pressed while holding down Alt or Meta keys.  This is mostly to help
+                           support Emacs.  It defaults to unset, so Alt and Meta have no effect without
+                           setting this flag.  It never tries to shift the characters into the extended
+                           ASCII range because that would be an invalid UTF-8 character.
  
 ## Unicode and UTF-8 encoding
 
