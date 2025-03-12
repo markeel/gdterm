@@ -10,6 +10,9 @@ func apply_themes():
 func set_initial_cmds(cmds):
 	_apply_child_cmds(self, cmds)
 
+func set_alt_meta(setting):
+	_apply_child_alt_meta(self, setting)
+
 func _apply_child_themes(parent):
 	for child in parent.get_children():
 		if child is VSplitContainer:
@@ -31,6 +34,17 @@ func _apply_child_cmds(parent, cmds):
 			pass
 		else:
 			child.apply_cmds(cmds)
+
+func _apply_child_alt_meta(parent, setting):
+	for child in parent.get_children():
+		if child is VSplitContainer:
+			_apply_child_alt_meta(child, setting)
+		elif child is HSplitContainer:
+			_apply_child_alt_meta(child, setting)
+		elif child is AudioStreamPlayer:
+			pass
+		else:
+			child.apply_alt_meta(setting)
 
 func _ready():
 	$term.set_id(_next_id())

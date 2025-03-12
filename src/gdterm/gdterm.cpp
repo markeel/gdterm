@@ -79,6 +79,8 @@ void GDTerm::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_background", "background"), &GDTerm::set_background);
 	ClassDB::bind_method(D_METHOD("get_vt_handler_log_path"), &GDTerm::get_vt_handler_log_path);
 	ClassDB::bind_method(D_METHOD("set_vt_handler_log_path", "vt_handler_log_path"), &GDTerm::set_vt_handler_log_path);
+	ClassDB::bind_method(D_METHOD("get_send_alt_meta_as_escape"), &GDTerm::get_send_alt_meta_as_escape);
+	ClassDB::bind_method(D_METHOD("set_send_alt_meta_as_escape", "send_alt_meta_as_escape"), &GDTerm::set_send_alt_meta_as_escape);
 	ClassDB::bind_method(D_METHOD("clear"), &GDTerm::clear);
 	ClassDB::bind_method(D_METHOD("is_active"), &GDTerm::is_active);
 	ClassDB::bind_method(D_METHOD("start"), &GDTerm::start);
@@ -122,6 +124,7 @@ void GDTerm::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "background"), "set_background", "get_background");
 
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "vt_handler_log_path"), "set_vt_handler_log_path", "get_vt_handler_log_path");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "send_alt_meta_as_escape"), "set_send_alt_meta_as_escape", "get_send_alt_meta_as_escape");
 
 	ADD_SIGNAL(MethodInfo("bell_request"));
 	ADD_SIGNAL(MethodInfo("inactive"));
@@ -203,6 +206,9 @@ GDTerm::GDTerm() {
 
 	// Logging
 	_vt_handler_input_log = nullptr;
+
+	// Terminal Settings
+	_send_alt_meta_as_escape = false;
 }
 
 GDTerm::~GDTerm() {
@@ -482,6 +488,16 @@ GDTerm::set_vt_handler_log_path(String log_path) {
 			_vt_handler_input_log->open(os_path.utf8(), std::ios::out);
 		}
 	}
+}
+
+void 
+GDTerm::set_send_alt_meta_as_escape(bool f) {
+	_send_alt_meta_as_escape = f;
+}
+
+bool 
+GDTerm::get_send_alt_meta_as_escape() const {
+	return _send_alt_meta_as_escape;
 }
 
 Color
@@ -959,7 +975,7 @@ GDTerm::_gui_input(const Ref<InputEvent> & p_event) {
 				next->grab_focus();
 			} else {
 				char buffer[100];
-				fill_term_string(buffer, 100, unicode, code);
+				fill_term_string(buffer, 100, unicode, code, _send_alt_meta_as_escape);
 				if (_proxy != nullptr) {
 					log_pty_input(buffer);
 					_proxy->send_string(buffer);

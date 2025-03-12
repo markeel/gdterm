@@ -12,6 +12,7 @@ var current_theme = null
 var current_layout = null
 var active_theme = null
 var active_initial_cmds = null
+var active_alt_meta = false
 
 const THEME_EDITOR : int = 0
 const THEME_DARK   : int = 1
@@ -41,6 +42,11 @@ var initial_cmds_info = {
 	"hint": PROPERTY_HINT_MULTILINE_TEXT,
 }
 
+var send_alt_meta_as_esc_info = {
+	"name": "gdterm/send_alt_meta_as_esc",
+	"type": TYPE_BOOL,
+}
+
 func _on_settings_changed():
 	var settings = EditorInterface.get_editor_settings()
 	
@@ -53,8 +59,12 @@ func _on_settings_changed():
 	var initial_cmds = String()
 	if settings.has_setting("gdterm/initial_commands"):
 		initial_cmds = settings.get_setting("gdterm/initial_commands")
+	var send_alt_meta_as_esc = false
+	if settings.has_setting("gdterm/send_alt_meta_as_esc"):
+		send_alt_meta_as_esc = settings.get_setting("gdterm/send_alt_meta_as_esc")
 	_apply_theme(theme)
 	_apply_initial_cmds(initial_cmds)
+	_apply_term_alt_meta_setting(send_alt_meta_as_esc)
 	_apply_layout(layout)
 
 func _apply_theme(theme):
@@ -144,6 +154,14 @@ func _apply_initial_cmds(cmds):
 			bottom_panel_instance.set_initial_cmds(cmds)
 		active_initial_cmds = cmds
 
+func _apply_term_alt_meta_setting(setting):
+	if active_alt_meta != setting:
+		if main_panel_instance != null:
+			main_panel_instance.get_main().set_alt_meta(setting)
+		if bottom_panel_instance != null:
+			bottom_panel_instance.set_alt_meta(setting)
+		active_alt_meta = setting
+
 func _enter_tree() -> void:
 	var settings = EditorInterface.get_editor_settings()
 	
@@ -162,6 +180,13 @@ func _enter_tree() -> void:
 		settings.set_setting("gdterm/initial_commands", initial_cmds)
 	_apply_initial_cmds(initial_cmds)
 
+	var alt_meta_setting = false
+	if settings.has_setting("gdterm/sent_alt_meta_as_esc"):
+		alt_meta_setting = settings.get_setting("gdterm/send_alt_meta_as_esc")
+	else:
+		settings.set_setting("gdterm/send_alt_meta_as_esc", alt_meta_setting)
+	_apply_term_alt_meta_setting(alt_meta_setting)
+
 	var layout = LAYOUT_MAIN
 	if settings.has_setting("gdterm/layout"):
 		layout = settings.get_setting("gdterm/layout")
@@ -174,6 +199,7 @@ func _enter_tree() -> void:
 	settings.add_property_info(theme_property_info)
 	settings.add_property_info(layout_property_info)
 	settings.add_property_info(initial_cmds_info)
+	settings.add_property_info(send_alt_meta_as_esc_info)
 	settings.settings_changed.connect(_on_settings_changed)
 	
 	# Hide the main panel. Very much required.

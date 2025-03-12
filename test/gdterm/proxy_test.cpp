@@ -1,9 +1,9 @@
-#include "pty_proxy.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <thread>
 #include <chrono>
+#include "pty_proxy.h"
 
 extern PtyProxy * create_proxy(TermRenderer * renderer);
 

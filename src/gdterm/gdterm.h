@@ -60,6 +60,7 @@ namespace godot {
 		Color      foreground;
 		Color      background;
 		String     vt_handler_log_path;
+		bool       send_alt_meta_as_escape;
 
 		PtyProxy * _proxy;
 
@@ -119,6 +120,9 @@ namespace godot {
 
 		// Logging
 		std::fstream * _vt_handler_input_log;
+
+		// Terminal Settings
+		bool _send_alt_meta_as_escape;
 
 	protected:
 		static void _bind_methods();
@@ -195,6 +199,9 @@ namespace godot {
 
 		void set_vt_handler_log_path(String c);
 		String get_vt_handler_log_path() const;
+
+		void set_send_alt_meta_as_escape(bool f);
+		bool get_send_alt_meta_as_escape() const;
 
 		void clear();
 		void start();
