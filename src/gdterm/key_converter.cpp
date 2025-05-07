@@ -1,9 +1,11 @@
 #include "key_converter.h"
 
-#include "thirdparty/libtmt/tmt.h"
+extern "C" {
+#include <libtmt/tmt.h>
+#include <libtmt/u8mbtowc.h>
+}
+#include <string.h>
 #include <cassert>
-#include <cstdio>
-#include <cstring>
 
 static const char * control_code[] = {
 	"\x00",
@@ -150,12 +152,14 @@ const char * symbols4[] = {
 };
 
 void
-fill_term_string(char * buffer, int buf_len, wchar_t unicode, godot::Key key) {
-	assert(buf_len > sizeof(wchar_t));
+fill_term_string(char * buffer, int buf_len, wchar_t unicode, godot::Key key, bool send_alt_meta_as_esc) {
+	assert(buf_len > 5); // 4 for maximum unicode + 1 for prefixing with escape
 	buffer[0] = '\0';
 	const char * return_val = "";
 	int code = key & godot::KeyModifierMask::KEY_CODE_MASK; 
 	int ctrl = key & godot::KeyModifierMask::KEY_MASK_CTRL;
+	int alt = key & godot::KeyModifierMask::KEY_MASK_ALT;
+	int meta = key & godot::KeyModifierMask::KEY_MASK_META;
 	switch (code) {
 		case godot::Key::KEY_NONE:
 		case godot::Key::KEY_SHIFT:
@@ -246,10 +250,14 @@ fill_term_string(char * buffer, int buf_len, wchar_t unicode, godot::Key key) {
 			strcpy(buffer, "\t");
 			break;
 		case godot::Key::KEY_BACKSPACE:
-			strcpy(buffer, TMT_KEY_BACKSPACE);
+			if (ctrl) {
+				strcpy(buffer, TMT_KEY_BACKSPACE);
+			} else {
+				strcpy(buffer, "\x7f");
+			}
 			break;
 		case godot::Key::KEY_DELETE:
-			strcpy(buffer, "\x7f");
+			strcpy(buffer, "\x1b[3~");
 			break;
 		case godot::Key::KEY_KP_ENTER:
 			strcpy(buffer, "\r");
@@ -316,116 +324,29 @@ fill_term_string(char * buffer, int buf_len, wchar_t unicode, godot::Key key) {
 			break;
 		default:
 		{
-			if (ctrl && (code >= godot::Key::KEY_AT) && (code <= godot::Key::KEY_UNDERSCORE)) {
-				buffer[0] = code - godot::Key::KEY_AT;
-				buffer[1] = '\0';
+			int pos = 0;
+			if ((meta || alt) && send_alt_meta_as_esc) {
+				buffer[pos++] = '\x1b';
+			}
+			int len = 1;
+			if (ctrl && (code >= godot::Key::KEY_AT) && (code <= godot::Key::KEY_BRACKETRIGHT)) {
+				buffer[pos] = code - godot::Key::KEY_AT;
+				buffer[pos+1] = '\0';
+			} else if (ctrl && (code == godot::Key::KEY_ASCIITILDE)) {
+				buffer[pos] = '\036';
+				buffer[pos+1] = '\0';
+			} else if (ctrl && (code == godot::Key::KEY_SLASH)) {
+				buffer[pos] = '\037';
+				buffer[pos+1] = '\0';
 			} else {
-				mbstate_t state;
-				memset(&state, 0, sizeof(mbstate_t));
-				int len = wcrtomb(buffer, unicode, &state);
-				buffer[len] = '\0';
+				len = wc_to_utf8(&buffer[pos], buf_len, unicode);
+				if (len < buf_len) {
+					buffer[pos+len] = '\0';
+				} else {
+					buffer[pos+buf_len-1] = '\0';
+				}
 			}
 		}
 	}
 }
 
-/*
-const char * 
-lookup_term_string(godot::Key key) {
-	const char * return_val = "";
-	int code = key & godot::KeyModifierMask::KEY_CODE_MASK; 
-	if (code == godot::Key::KEY_TAB) {
-		printf("Tab key\n");
-	} else {
-		printf("NOT Tab key\n");
-	}
-	int modifiers = key & godot::KeyModifierMask::KEY_MODIFIER_MASK; 
-	if ((code >= godot::Key::KEY_AT) && (code <= godot::Key::KEY_UNDERSCORE)) {
-		return_val = lower_case[code-godot::Key::KEY_AT];
-		if (modifiers & godot::KeyModifierMask::KEY_MASK_CTRL) {
-			return_val = control_code[code-godot::Key::KEY_AT];
-		}
-		if ((code >= godot::Key::KEY_A) && (code <= godot::Key::KEY_Z)) {
-			if (modifiers & godot::KeyModifierMask::KEY_MASK_SHIFT) {
-				return_val = upper_case[code-godot::Key::KEY_A];
-			}
-		}
-	} else if ((code >= godot::Key::KEY_KP_0) && (code <= godot::Key::KEY_KP_9)) {
-		return_val = numbers[code-godot::Key::KEY_KP_0];
-	} else if ((code >= godot::Key::KEY_SPACE) && (code <= godot::Key::KEY_SLASH)) {
-		return_val = symbols1[code-godot::Key::KEY_SPACE];
-	} else if ((code >= godot::Key::KEY_0) && (code <= godot::Key::KEY_9)) {
-		return_val = numbers[code-godot::Key::KEY_0];
-	} else if ((code >= godot::Key::KEY_COLON) && (code <= godot::Key::KEY_QUESTION)) {
-		fprintf(stderr, "code=%02x\n", code);
-		return_val = symbols2[code-godot::Key::KEY_COLON];
-	} else if ((code >= godot::Key::KEY_BRACKETLEFT) && (code <= godot::Key::KEY_QUOTELEFT)) {
-		return_val = symbols3[code-godot::Key::KEY_BRACKETLEFT];
-	} else if ((code >= godot::Key::KEY_BRACELEFT) && (code <= godot::Key::KEY_ASCIITILDE)) {
-		return_val = symbols4[code-godot::Key::KEY_BRACELEFT];
-	} else {
-		switch (code) {
-			case godot::Key::KEY_ESCAPE:
-				return "\x1b\x1b";
-			case godot::Key::KEY_TAB:
-				printf("filled in a tab\n");
-				return "\t";
-			case godot::Key::KEY_BACKSPACE:
-				return TMT_KEY_BACKSPACE;
-			case godot::Key::KEY_ENTER:
-			case godot::Key::KEY_KP_ENTER:
-				return "\r";
-			case godot::Key::KEY_INSERT:
-				return TMT_KEY_INSERT;
-			case godot::Key::KEY_DELETE:
-				return "\x1f";
-			case godot::Key::KEY_HOME:
-				return TMT_KEY_HOME;
-			case godot::Key::KEY_END:
-				return TMT_KEY_END;
-			case godot::Key::KEY_LEFT:
-				return TMT_KEY_LEFT;
-			case godot::Key::KEY_UP:
-				return TMT_KEY_UP;
-			case godot::Key::KEY_RIGHT:
-				return TMT_KEY_RIGHT;
-			case godot::Key::KEY_DOWN:
-				return TMT_KEY_DOWN;
-			case godot::Key::KEY_PAGEUP:
-				return TMT_KEY_PAGE_UP;
-			case godot::Key::KEY_PAGEDOWN:
-				return TMT_KEY_PAGE_DOWN;
-			case godot::Key::KEY_F1:
-				return TMT_KEY_F1;
-			case godot::Key::KEY_F2:
-				return TMT_KEY_F2;
-			case godot::Key::KEY_F3:
-				return TMT_KEY_F3;
-			case godot::Key::KEY_F4:
-				return TMT_KEY_F4;
-			case godot::Key::KEY_F5:
-				return TMT_KEY_F5;
-			case godot::Key::KEY_F6:
-				return TMT_KEY_F6;
-			case godot::Key::KEY_F7:
-				return TMT_KEY_F7;
-			case godot::Key::KEY_F8:
-				return TMT_KEY_F8;
-			case godot::Key::KEY_F9:
-				return TMT_KEY_F9;
-			case godot::Key::KEY_F10:
-				return TMT_KEY_F10;
-			case godot::Key::KEY_KP_MULTIPLY:
-				return "*";
-			case godot::Key::KEY_KP_DIVIDE:
-				return "/";
-			case godot::Key::KEY_KP_SUBTRACT:
-				return "-";
-			case godot::Key::KEY_KP_PERIOD:
-				return ".";
-		}
-	}
-	
-	return return_val;
-}
-*/

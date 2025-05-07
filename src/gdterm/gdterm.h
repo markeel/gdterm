@@ -29,6 +29,8 @@ namespace godot {
 	};
 
 	struct GDTermLine {
+		int glyph_length;
+		int selectable_length;
 		std::vector<GDTermLineDirective> dirs;
 	};
 
@@ -47,9 +49,18 @@ namespace godot {
 		Color      magenta;
 		Color      cyan;
 		Color      white;
+		Color      bright_black;
+		Color      bright_red;
+		Color      bright_green;
+		Color      bright_yellow;
+		Color      bright_blue;
+		Color      bright_magenta;
+		Color      bright_cyan;
+		Color      bright_white;
 		Color      foreground;
 		Color      background;
 		String     vt_handler_log_path;
+		bool       send_alt_meta_as_escape;
 
 		PtyProxy * _proxy;
 
@@ -110,6 +121,9 @@ namespace godot {
 		// Logging
 		std::fstream * _vt_handler_input_log;
 
+		// Terminal Settings
+		bool _send_alt_meta_as_escape;
+
 	protected:
 		static void _bind_methods();
 
@@ -153,6 +167,30 @@ namespace godot {
 		void set_white(Color c);
 		Color get_white() const;
 
+		void set_bright_black(Color c);
+		Color get_bright_black() const;
+
+		void set_bright_red(Color c);
+		Color get_bright_red() const;
+
+		void set_bright_green(Color c);
+		Color get_bright_green() const;
+
+		void set_bright_yellow(Color c);
+		Color get_bright_yellow() const;
+
+		void set_bright_blue(Color c);
+		Color get_bright_blue() const;
+
+		void set_bright_magenta(Color c);
+		Color get_bright_magenta() const;
+
+		void set_bright_cyan(Color c);
+		Color get_bright_cyan() const;
+
+		void set_bright_white(Color c);
+		Color get_bright_white() const;
+
 		void set_foreground(Color c);
 		Color get_foreground() const;
 
@@ -161,6 +199,9 @@ namespace godot {
 
 		void set_vt_handler_log_path(String c);
 		String get_vt_handler_log_path() const;
+
+		void set_send_alt_meta_as_escape(bool f);
+		bool get_send_alt_meta_as_escape() const;
 
 		void clear();
 		void start();
@@ -193,6 +234,7 @@ namespace godot {
 		virtual void show_cursor(bool flag) override;
 		virtual void resize_complete() override;
 		virtual void exited() override;
+		virtual void log_pty_input(const char * data) override;
 		virtual void log_vt_handler_input(unsigned char * data, int data_len) override;
 
 	private:
@@ -200,7 +242,9 @@ namespace godot {
 		bool _clear_drawing();
 		void _restart_cursor();
 		bool _is_cursor_pos(int row, int col);
-		bool _is_in_selection(int row, int col);
+		bool _is_in_selection(int max_sel_col, int row, int col);
+		bool _is_control_shift_c(Key code);
+		bool _is_control_shift_v(Key code);
 		bool _is_control_tab(Key code);
 		bool _is_shift_control_tab(Key code);
 		bool _is_control_c(Key code);

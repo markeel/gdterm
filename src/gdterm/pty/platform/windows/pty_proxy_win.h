@@ -45,8 +45,13 @@ private:
 	HANDLE                  _to_thread;
 	unsigned char           _to_buffer[TO_BUFFER_MAX_SIZE];
 	int                     _to_buffer_pos;
+	bool                    _to_thread_started;
 
 	HANDLE                  _from_thread;
+	bool                    _from_thread_started;
+
+	std::mutex              _start_complete_mutex;
+	std::condition_variable _start_complete;
 
 	void _create_pipes_and_pty();
 	void _create_process();
@@ -62,6 +67,8 @@ private:
 	void _join_threads();
 	void _terminate_process();
 	void _close_pty();
+	void _notify_to_started();
+	void _notify_from_started();
 };
 
 #endif

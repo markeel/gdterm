@@ -14,8 +14,8 @@ size = Vector2i(63, 62)
 always_on_top = true
 system_menu_id = 0
 item_count = 9
-item_0/text = "Copy"
-item_1/text = "Paste"
+item_0/text = "Copy (Shift+Ctrl+C)"
+item_1/text = "Paste (Shift+Ctrl+V)"
 item_1/id = 1
 item_2/text = "Restart"
 item_2/id = 2
@@ -32,13 +32,14 @@ item_7/id = 5
 item_8/text = "New Right"
 item_8/id = 6
 
-[node name="GDTerm" type="GDTerm" parent="."]
+[node name="GDTerm" type="GDTerm" parent="." node_paths=PackedStringArray("shortcut_context")]
 font = ExtResource("2_vxjtp")
 dim_font = ExtResource("3_308uo")
 bold_font = ExtResource("4_roq5w")
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 1
+shortcut_context = NodePath("..")
 
 [node name="scrollbar" type="VScrollBar" parent="."]
 custom_minimum_size = Vector2(20, 0)
@@ -53,7 +54,9 @@ value = 24.0
 [connection signal="visibility_changed" from="." to="." method="_on_visibility_changed"]
 [connection signal="id_pressed" from="menu" to="." method="_on_menu_id_pressed"]
 [connection signal="bell_request" from="GDTerm" to="." method="_on_gd_term_bell_request"]
+[connection signal="copy_request" from="GDTerm" to="." method="_on_gd_term_copy_request"]
 [connection signal="inactive" from="GDTerm" to="." method="_on_gd_term_inactive"]
+[connection signal="paste_request" from="GDTerm" to="." method="_on_gd_term_paste_request"]
 [connection signal="scrollback_changed" from="GDTerm" to="." method="_on_gd_term_scrollback_changed"]
 [connection signal="tree_entered" from="GDTerm" to="." method="_on_gd_term_tree_entered"]
 [connection signal="value_changed" from="scrollbar" to="." method="_on_scrollbar_value_changed"]

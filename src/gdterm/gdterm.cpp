@@ -1,6 +1,6 @@
 
 #include "gdterm.h"
-#ifdef HAS_PRIMARY_CLIPBOARD
+#ifdef USE_PRIMARY_CLIPBOARD
 #include "godot_cpp/classes/display_server.hpp"
 #endif
 #include "godot_cpp/classes/global_constants.hpp"
@@ -57,12 +57,30 @@ void GDTerm::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_cyan", "cyan"), &GDTerm::set_cyan);
 	ClassDB::bind_method(D_METHOD("get_white"), &GDTerm::get_white);
 	ClassDB::bind_method(D_METHOD("set_white", "white"), &GDTerm::set_white);
+	ClassDB::bind_method(D_METHOD("get_bright_black"), &GDTerm::get_bright_black);
+	ClassDB::bind_method(D_METHOD("set_bright_black", "black"), &GDTerm::set_bright_black);
+	ClassDB::bind_method(D_METHOD("get_bright_red"), &GDTerm::get_bright_red);
+	ClassDB::bind_method(D_METHOD("set_bright_red", "red"), &GDTerm::set_bright_red);
+	ClassDB::bind_method(D_METHOD("get_bright_green"), &GDTerm::get_bright_green);
+	ClassDB::bind_method(D_METHOD("set_bright_green", "green"), &GDTerm::set_bright_green);
+	ClassDB::bind_method(D_METHOD("get_bright_yellow"), &GDTerm::get_bright_yellow);
+	ClassDB::bind_method(D_METHOD("set_bright_yellow", "yellow"), &GDTerm::set_bright_yellow);
+	ClassDB::bind_method(D_METHOD("get_bright_blue"), &GDTerm::get_bright_blue);
+	ClassDB::bind_method(D_METHOD("set_bright_blue", "blue"), &GDTerm::set_bright_blue);
+	ClassDB::bind_method(D_METHOD("get_bright_magenta"), &GDTerm::get_bright_magenta);
+	ClassDB::bind_method(D_METHOD("set_bright_magenta", "magenta"), &GDTerm::set_bright_magenta);
+	ClassDB::bind_method(D_METHOD("get_bright_cyan"), &GDTerm::get_bright_cyan);
+	ClassDB::bind_method(D_METHOD("set_bright_cyan", "cyan"), &GDTerm::set_bright_cyan);
+	ClassDB::bind_method(D_METHOD("get_bright_white"), &GDTerm::get_bright_white);
+	ClassDB::bind_method(D_METHOD("set_bright_white", "white"), &GDTerm::set_bright_white);
 	ClassDB::bind_method(D_METHOD("get_foreground"), &GDTerm::get_foreground);
 	ClassDB::bind_method(D_METHOD("set_foreground", "foreground"), &GDTerm::set_foreground);
 	ClassDB::bind_method(D_METHOD("get_background"), &GDTerm::get_background);
 	ClassDB::bind_method(D_METHOD("set_background", "background"), &GDTerm::set_background);
 	ClassDB::bind_method(D_METHOD("get_vt_handler_log_path"), &GDTerm::get_vt_handler_log_path);
 	ClassDB::bind_method(D_METHOD("set_vt_handler_log_path", "vt_handler_log_path"), &GDTerm::set_vt_handler_log_path);
+	ClassDB::bind_method(D_METHOD("get_send_alt_meta_as_escape"), &GDTerm::get_send_alt_meta_as_escape);
+	ClassDB::bind_method(D_METHOD("set_send_alt_meta_as_escape", "send_alt_meta_as_escape"), &GDTerm::set_send_alt_meta_as_escape);
 	ClassDB::bind_method(D_METHOD("clear"), &GDTerm::clear);
 	ClassDB::bind_method(D_METHOD("is_active"), &GDTerm::is_active);
 	ClassDB::bind_method(D_METHOD("start"), &GDTerm::start);
@@ -94,16 +112,25 @@ void GDTerm::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "magenta"), "set_magenta", "get_magenta");
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "cyan"), "set_cyan", "get_cyan");
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "white"), "set_white", "get_white");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "bright_black"), "set_bright_black", "get_bright_black");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "bright_red"), "set_bright_red", "get_bright_red");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "bright_green"), "set_bright_green", "get_bright_green");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "bright_yellow"), "set_bright_yellow", "get_bright_yellow");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "bright_blue"), "set_bright_blue", "get_bright_blue");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "bright_magenta"), "set_bright_magenta", "get_bright_magenta");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "bright_cyan"), "set_bright_cyan", "get_bright_cyan");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "bright_white"), "set_bright_white", "get_bright_white");
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "foreground"), "set_foreground", "get_foreground");
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "background"), "set_background", "get_background");
 
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "vt_handler_log_path"), "set_vt_handler_log_path", "get_vt_handler_log_path");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "send_alt_meta_as_escape"), "set_send_alt_meta_as_escape", "get_send_alt_meta_as_escape");
 
 	ADD_SIGNAL(MethodInfo("bell_request"));
 	ADD_SIGNAL(MethodInfo("inactive"));
 	ADD_SIGNAL(MethodInfo("scrollback_changed"));
-
-	fprintf(stderr, "_bind_methods called\n");
+	ADD_SIGNAL(MethodInfo("copy_request"));
+	ADD_SIGNAL(MethodInfo("paste_request"));
 }
 
 GDTerm::GDTerm() {
@@ -116,6 +143,14 @@ GDTerm::GDTerm() {
 	magenta = godot::Color("#BB00BB");
 	cyan = godot::Color("#00BBBB");
 	white = godot::Color("#BBBBBB");
+	bright_black = godot::Color("#555555");
+	bright_red = godot::Color("#DD5555");
+	bright_green = godot::Color("#55DD55");
+	bright_yellow = godot::Color("#DDDD55");
+	bright_blue = godot::Color("#5555DD");
+	bright_magenta = godot::Color("#DD55DD");
+	bright_cyan = godot::Color("#55DDDD");
+	bright_white = godot::Color("#DDDDDD");
 	foreground = godot::Color("#111111");
 	background = godot::Color("#EEEEEE");
 	set_clip_contents(true);
@@ -133,6 +168,10 @@ GDTerm::GDTerm() {
 	// Pending
 	_pending_dirty = false;
 	_pending_screen_lines.resize(24);
+	for (int i=0; i<24; i++) {
+		_pending_screen_lines[i].glyph_length = 0;
+		_pending_screen_lines[i].selectable_length = 0;
+	}
 	_pending_state = STATE_SCREEN_DONE;
 	_pending_screen_row = 0;
 	_pending_cursor_displayed = true;
@@ -167,6 +206,9 @@ GDTerm::GDTerm() {
 
 	// Logging
 	_vt_handler_input_log = nullptr;
+
+	// Terminal Settings
+	_send_alt_meta_as_escape = false;
 }
 
 GDTerm::~GDTerm() {
@@ -313,6 +355,102 @@ GDTerm::get_white() const {
 }
 
 void
+GDTerm::set_bright_black(Color c) {
+	if (bright_black != c) {
+		bright_black = c;
+	}
+}
+
+Color
+GDTerm::get_bright_black() const {
+	return bright_black;
+}
+
+void
+GDTerm::set_bright_red(Color c) {
+	if (bright_red != c) {
+		bright_red = c;
+	}
+}
+
+Color
+GDTerm::get_bright_red() const {
+	return bright_red;
+}
+
+void
+GDTerm::set_bright_green(Color c) {
+	if (bright_green != c) {
+		bright_green = c;
+	}
+}
+
+Color
+GDTerm::get_bright_green() const {
+	return bright_green;
+}
+
+void
+GDTerm::set_bright_yellow(Color c) {
+	if (bright_yellow != c) {
+		bright_yellow = c;
+	}
+}
+
+Color
+GDTerm::get_bright_yellow() const {
+	return bright_yellow;
+}
+
+void
+GDTerm::set_bright_blue(Color c) {
+	if (bright_blue != c) {
+		bright_blue = c;
+	}
+}
+
+Color
+GDTerm::get_bright_blue() const {
+	return bright_blue;
+}
+
+void
+GDTerm::set_bright_magenta(Color c) {
+	if (bright_magenta != c) {
+		bright_magenta = c;
+	}
+}
+
+Color
+GDTerm::get_bright_magenta() const {
+	return bright_magenta;
+}
+
+void
+GDTerm::set_bright_cyan(Color c) {
+	if (bright_cyan != c) {
+		bright_cyan = c;
+	}
+}
+
+Color
+GDTerm::get_bright_cyan() const {
+	return bright_cyan;
+}
+
+void
+GDTerm::set_bright_white(Color c) {
+	if (bright_white != c) {
+		bright_white = c;
+	}
+}
+
+Color
+GDTerm::get_bright_white() const {
+	return bright_white;
+}
+
+void
 GDTerm::set_foreground(Color c) {
 	if (foreground != c) {
 		foreground = c;
@@ -350,6 +488,16 @@ GDTerm::set_vt_handler_log_path(String log_path) {
 			_vt_handler_input_log->open(os_path.utf8(), std::ios::out);
 		}
 	}
+}
+
+void 
+GDTerm::set_send_alt_meta_as_escape(bool f) {
+	_send_alt_meta_as_escape = f;
+}
+
+bool 
+GDTerm::get_send_alt_meta_as_escape() const {
+	return _send_alt_meta_as_escape;
 }
 
 Color
@@ -410,6 +558,10 @@ GDTerm::get_font_size() const {
 void
 GDTerm::clear() {
 	_screen_lines.resize(_rows);
+	for (int i=0; i<_rows; i++) {
+		_screen_lines[i].glyph_length = 0;
+		_screen_lines[i].selectable_length = 0;
+	}
 	_scrollback.clear();
 	_scrollback_pos = 0;
 	_cursor_showing = false;
@@ -487,6 +639,7 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 	bool invisible = false;
 	bool blinking = false;
 	bool underline = false;
+	bool fullwidth = false;
 
 	Ref<Font> cur_font = font;
 	Vector2 seg_pos = pos;
@@ -501,7 +654,7 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 		if (reverse) {
 			std::swap(cur_fg, cur_bg);
 		}
-		if (_selection_active && _is_in_selection(actual_row, col)) {
+		if (_selection_active && _is_in_selection(line.selectable_length, actual_row, col)) {
 			std::swap(cur_fg, cur_bg);
 		}
 		bool outline_cursor = false;
@@ -525,10 +678,18 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 			cur_fg = cur_bg;
 		}
 		if (kind == DIRECTIVE_WRITE_GLYPH) {
-			// TODO - Check that LC_CTYPE is UTF8
 			String glyph = String::utf8(line.dirs[j].data.text.c_str(), line.dirs[j].data.text.length());
-			Rect2 rect = Rect2(seg_pos.x, seg_pos.y-font_ascent, _font_space_size.x, font_height);
-			draw_rect(rect, cur_bg, true);
+			float glyph_width = _font_space_size.x;
+			int col_width = 1;
+			if (fullwidth) {
+				glyph_width *= 2.0;
+				col_width = 2;
+			}
+			Vector2 glyph_size = cur_font->get_string_size(glyph, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size);
+			Rect2 rect = Rect2(seg_pos.x, seg_pos.y-font_ascent, glyph_size.x, font_height);
+			if (cur_bg != background) {
+				draw_rect(rect, cur_bg, true);
+			}
 			if (outline_cursor) {
 				draw_rect(rect, cur_fg, false);
 			}
@@ -536,11 +697,14 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 			if (underline) {
 				draw_line(Vector2(seg_pos.x, seg_pos.y + font_underline), Vector2(seg_pos.x + _font_space_size.x, seg_pos.y + font_underline), cur_fg);
 			}
-			seg_pos.x += _font_space_size.x;
-			col += 1;
+			seg_pos.x += glyph_width;
+			col += col_width;
 		} else if (kind == DIRECTIVE_SET_STATE) {
 			LineTag tag = line.dirs[j].data.tag;
-			switch (tag) {
+			float tag_red = CLAMP(tag.red, 0, 255) / 255.0f;
+			float tag_green = CLAMP(tag.green, 0, 255) / 255.0f;
+			float tag_blue = CLAMP(tag.blue, 0, 255) / 255.0f;
+			switch (tag.code) {
 				case BOLD:
 					cur_font = bold_font;
 					break;
@@ -558,6 +722,9 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 					break;
 				case UNDERLINE:
 					underline = true;
+					break;
+				case FULLWIDTH:
+					fullwidth = true;
 					break;
 				case FG_COLOR_BLACK:
 					fg_color = black;
@@ -583,6 +750,33 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 				case FG_COLOR_WHITE:
 					fg_color = white;
 					break;
+				case FG_COLOR_BRIGHT_BLACK:
+					fg_color = bright_black;
+					break;
+				case FG_COLOR_BRIGHT_RED:
+					fg_color = bright_red;
+					break;
+				case FG_COLOR_BRIGHT_GREEN:
+					fg_color = bright_green;
+					break;
+				case FG_COLOR_BRIGHT_YELLOW:
+					fg_color = bright_yellow;
+					break;
+				case FG_COLOR_BRIGHT_BLUE:
+					fg_color = bright_blue;
+					break;
+				case FG_COLOR_BRIGHT_MAGENTA:
+					fg_color = bright_magenta;
+					break;
+				case FG_COLOR_BRIGHT_CYAN:
+					fg_color = bright_cyan;
+					break;
+				case FG_COLOR_BRIGHT_WHITE:
+					fg_color = bright_white;
+					break;
+				case FG_COLOR_RGB:
+					fg_color = Color(tag_red, tag_green, tag_blue);
+					break;
 				case BG_COLOR_BLACK:
 					bg_color = black;
 					break;
@@ -607,12 +801,39 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 				case BG_COLOR_WHITE:
 					bg_color = white;
 					break;
+				case BG_COLOR_BRIGHT_BLACK:
+					bg_color = bright_black;
+					break;
+				case BG_COLOR_BRIGHT_RED:
+					bg_color = bright_red;
+					break;
+				case BG_COLOR_BRIGHT_GREEN:
+					bg_color = bright_green;
+					break;
+				case BG_COLOR_BRIGHT_YELLOW:
+					bg_color = bright_yellow;
+					break;
+				case BG_COLOR_BRIGHT_BLUE:
+					bg_color = bright_blue;
+					break;
+				case BG_COLOR_BRIGHT_MAGENTA:
+					bg_color = bright_magenta;
+					break;
+				case BG_COLOR_BRIGHT_CYAN:
+					bg_color = bright_cyan;
+					break;
+				case BG_COLOR_BRIGHT_WHITE:
+					bg_color = bright_white;
+					break;
+				case BG_COLOR_RGB:
+					bg_color = Color(tag_red, tag_green, tag_blue);
+					break;
 				default:
 					break;
 			}
 		} else if (kind == DIRECTIVE_CLEAR_STATE) {
 			LineTag tag = line.dirs[j].data.tag;
-			switch (tag) {
+			switch (tag.code) {
 				case BOLD:
 				case DIM:
 					cur_font = font;
@@ -629,6 +850,9 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 				case UNDERLINE:
 					underline = false;
 					break;
+				case FULLWIDTH:
+					fullwidth = false;
+					break;
 				case FG_COLOR_BLACK:
 				case FG_COLOR_RED:
 				case FG_COLOR_GREEN:
@@ -637,6 +861,15 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 				case FG_COLOR_MAGENTA:
 				case FG_COLOR_CYAN:
 				case FG_COLOR_WHITE:
+				case FG_COLOR_BRIGHT_BLACK:
+				case FG_COLOR_BRIGHT_RED:
+				case FG_COLOR_BRIGHT_GREEN:
+				case FG_COLOR_BRIGHT_YELLOW:
+				case FG_COLOR_BRIGHT_BLUE:
+				case FG_COLOR_BRIGHT_MAGENTA:
+				case FG_COLOR_BRIGHT_CYAN:
+				case FG_COLOR_BRIGHT_WHITE:
+				case FG_COLOR_RGB:
 					fg_color = foreground;
 					break;
 				case BG_COLOR_BLACK:
@@ -647,6 +880,15 @@ GDTerm::_draw_term_line(Vector2 & pos, const GDTermLine & line, int cursor_row, 
 				case BG_COLOR_MAGENTA:
 				case BG_COLOR_CYAN:
 				case BG_COLOR_WHITE:
+				case BG_COLOR_BRIGHT_BLACK:
+				case BG_COLOR_BRIGHT_RED:
+				case BG_COLOR_BRIGHT_GREEN:
+				case BG_COLOR_BRIGHT_YELLOW:
+				case BG_COLOR_BRIGHT_BLUE:
+				case BG_COLOR_BRIGHT_MAGENTA:
+				case BG_COLOR_BRIGHT_CYAN:
+				case BG_COLOR_BRIGHT_WHITE:
+				case BG_COLOR_RGB:
 					bg_color = background;
 					break;
 				default:
@@ -721,7 +963,11 @@ GDTerm::_gui_input(const Ref<InputEvent> & p_event) {
 			assert(sizeof(wchar_t) == sizeof(int64_t));
 			wchar_t unicode = (wchar_t)ke->get_unicode();
 			Key code = ke->get_keycode_with_modifiers();
-			if (_is_shift_control_tab(code)) {
+			if (_is_control_shift_c(code)) {
+				emit_signal("copy_request");
+			} else if (_is_control_shift_v(code)) {
+				emit_signal("paste_request");
+			} else if (_is_shift_control_tab(code)) {
 				Control * prev = find_prev_valid_focus();
 				prev->grab_focus();
 			} else if (_is_control_tab(code)) {
@@ -729,8 +975,9 @@ GDTerm::_gui_input(const Ref<InputEvent> & p_event) {
 				next->grab_focus();
 			} else {
 				char buffer[100];
-				fill_term_string(buffer, 100, unicode, code);
+				fill_term_string(buffer, 100, unicode, code, _send_alt_meta_as_escape);
 				if (_proxy != nullptr) {
+					log_pty_input(buffer);
 					_proxy->send_string(buffer);
 				} else {
 					emit_signal("bell_request");
@@ -751,11 +998,16 @@ GDTerm::_gui_input(const Ref<InputEvent> & p_event) {
 				int mouse_row = mpos.y / _font_space_size.y;
 				int mouse_col = mpos.x / _font_space_size.x;
 				if (!_selecting) {
-					if (_selection_active && !_is_in_selection(mouse_row+_scrollback_pos, mouse_col)) {
-						_selection_active = false;
-						_selecting = false;
-						_select_mode = SELECT_MODE_CHAR;
-						_select_tick = godot::Time::get_singleton()->get_ticks_msec();
+					const GDTermLine & line = _get_term_line(mouse_row+_scrollback_pos);
+					if (_selection_active && !_is_in_selection(line.selectable_length, mouse_row+_scrollback_pos, mouse_col)) {
+						if (!mbe->is_shift_pressed()) {
+							_selection_active = false;
+							_selecting = false;
+							_select_mode = SELECT_MODE_CHAR;
+							_select_start_row = _scrollback_pos + mouse_row;
+							_update_select_for_start_col(_select_start_row, mouse_col);
+							_select_tick = godot::Time::get_singleton()->get_ticks_msec();
+						}
 					} else {
 						uint64_t now = godot::Time::get_singleton()->get_ticks_msec();
 						uint64_t delta = now - _select_tick;
@@ -772,11 +1024,11 @@ GDTerm::_gui_input(const Ref<InputEvent> & p_event) {
 							_selection_active = false;
 							_select_tick = godot::Time::get_singleton()->get_ticks_msec();
 						}
+						_select_start_row = _scrollback_pos + mouse_row;
+						_update_select_for_start_col(_select_start_row, mouse_col);
 					}
 				}
 				_selecting = true;
-				_select_start_row = _scrollback_pos + mouse_row;
-				_update_select_for_start_col(_select_start_row, mouse_col);
 				_select_end_row = _scrollback_pos + mouse_row;
 				_update_select_for_end_col(_select_end_row, mouse_col);
 				queue_redraw();
@@ -794,7 +1046,7 @@ GDTerm::_gui_input(const Ref<InputEvent> & p_event) {
 				}
 				if (_selection_active) {
 					godot::String text = get_selected_text();
-#ifdef HAS_PRIMARY_CLIPBOARD
+#ifdef USE_PRIMARY_CLIPBOARD
 					if (text.length() > 0) {
 						godot::DisplayServer::get_singleton()->clipboard_set_primary(text);
 					}
@@ -811,7 +1063,30 @@ GDTerm::_gui_input(const Ref<InputEvent> & p_event) {
 			int mouse_row = mpos.y / _font_space_size.y;
 			int mouse_col = mpos.x / _font_space_size.x;
 			_select_end_row = _scrollback_pos + mouse_row;
+			if (_select_end_row < 0) {
+				_select_end_row = 0;
+			}
+			if (_select_end_row >= (_screen_lines.size() + _scrollback.size())) {
+				_select_end_row = _screen_lines.size() + _scrollback.size() - 1;
+			}
 			_update_select_for_end_col(_select_end_row, mouse_col);
+			if (mouse_row > _rows) {
+				if (_scrollback_pos < _scrollback.size()) {
+					_scrollback_pos += mouse_row - _rows;
+					if (_scrollback_pos >= _scrollback.size()) {
+						_scrollback_pos = _scrollback.size();
+					}
+					_notify_scrollback();
+				}
+			} else if (mouse_row < 0) {
+				if (_scrollback_pos > 0) {
+					_scrollback_pos += mouse_row;
+					if (_scrollback_pos < 0) {
+						_scrollback_pos = 0;
+					}
+					_notify_scrollback();
+				}
+			}
 			uint64_t now = godot::Time::get_singleton()->get_ticks_msec();
 			uint64_t delta = now - _select_tick;
 			if (delta >= CLICK_DELTA_TIME) {
@@ -840,7 +1115,6 @@ GDTerm::update_cursor(int row, int col) {
 	_pending_cursor_dirty = true;
 	_pending_cursor_row = row;
 	_pending_cursor_col = col;
-	//call_deferred("queue_redraw");
 }
 
 void 
@@ -866,10 +1140,14 @@ GDTerm::screen_set_row(int row) {
 	_pending_screen_row = row;
 	if (_pending_target == TARGET_SCREEN) {
 		if ((_pending_screen_row >= 0) && (_pending_screen_row < _pending_screen_lines.size())) {
+			_pending_screen_lines[row].glyph_length = 0;
+			_pending_screen_lines[row].selectable_length = 0;
 			_pending_screen_lines[row].dirs.clear();
 		}
 	} else {
 		if ((_pending_screen_row >= 0) && (_pending_screen_row < _pending_scrollback.size())) {
+			_pending_scrollback[row].glyph_length = 0;
+			_pending_scrollback[row].selectable_length = 0;
 			_pending_scrollback[row].dirs.clear();
 		}
 	}
@@ -927,10 +1205,18 @@ GDTerm::screen_add_glyph(const char * c, int len) {
 	d.data.text = std::string(c, len);
 	if (_pending_target == TARGET_SCREEN) {
 		if ((_pending_screen_row >= 0) && (_pending_screen_row < _pending_screen_lines.size())) {
+			_pending_screen_lines[_pending_screen_row].glyph_length += 1;
+			if (d.data.text != " ") {
+				_pending_screen_lines[_pending_screen_row].selectable_length = _pending_screen_lines[_pending_screen_row].glyph_length;
+			}
 			_pending_screen_lines[_pending_screen_row].dirs.push_back(d);
 		}
 	} else {
 		if ((_pending_screen_row >= 0) && (_pending_screen_row < _pending_scrollback.size())) {
+			_pending_scrollback[_pending_screen_row].glyph_length += 1;
+			if (d.data.text != " ") {
+				_pending_scrollback[_pending_screen_row].selectable_length = _pending_scrollback[_pending_screen_row].glyph_length;
+			}
 			_pending_scrollback[_pending_screen_row].dirs.push_back(d);
 		}
 	}
@@ -944,8 +1230,6 @@ GDTerm::screen_done() {
 	}
 	_pending_dirty = true;
 	_pending_state = STATE_SCREEN_DONE;
-
-	//call_deferred("queue_redraw");
 }
 
 bool
@@ -976,8 +1260,6 @@ GDTerm::scroll_done() {
 	_pending_saved_scrollback.insert(_pending_saved_scrollback.end(), _pending_scrollback.begin(), _pending_scrollback.end());
 	_pending_dirty = true;
 	_pending_state = STATE_SCREEN_DONE;
-
-	//call_deferred("queue_redraw");
 }
 
 void
@@ -991,13 +1273,12 @@ void
 GDTerm::resize_complete() {
 	const std::lock_guard<std::mutex> lock(_pending_mutex);
 	_pending_state = STATE_SCREEN_DONE;
-	//call_deferred("queue_redraw");
 }
 
 bool
 GDTerm::_blink_on_line(GDTermLine &line) const {
 	for (int j=0; j<line.dirs.size(); j++) {
-		if ((line.dirs[j].kind == DIRECTIVE_SET_STATE) && (line.dirs[j].data.tag == LineTag::BLINK)) {
+		if ((line.dirs[j].kind == DIRECTIVE_SET_STATE) && (line.dirs[j].data.tag.code == LineTagCode::BLINK)) {
 			return true;
 		}
 	}
@@ -1094,11 +1375,11 @@ GDTerm::_update_select_for_end_col(int row, int col) {
 	} else if (_select_mode == SELECT_MODE_LINE) {
 		const GDTermLine & line = _get_term_line(row);
 		if (row >= _select_start_row) {
-			_select_end_col = _calc_line_size(line)-1;
+			_select_end_col = line.selectable_length-1;
 			_select_start_col = 0;
 		} else {
 			const GDTermLine & start_line = _get_term_line(_select_start_row);
-			_select_start_col = _calc_line_size(start_line)-1;
+			_select_start_col = line.selectable_length-1;
 			_select_end_col = 0;
 		}
 		return;
@@ -1158,6 +1439,9 @@ GDTerm::get_selected_text() const {
 			int cur_col = 0;
 			if (row > start_row) { selection += "\n"; }
 			const GDTermLine & line = (row < _scrollback.size()) ? _scrollback[row] : _screen_lines[row-_scrollback.size()];
+			if (row_end_col >= line.selectable_length) {
+				row_end_col = line.selectable_length-1;
+			}
 			for (int d=0; d<line.dirs.size(); d++) {
 				const GDTermLineDirective & dir = line.dirs[d];
 				if (dir.kind == DIRECTIVE_WRITE_GLYPH) {
@@ -1182,9 +1466,6 @@ GDTerm::_make_pending_active() {
 	}
 	if (_pending_dirty) {
 		_screen_lines = _pending_screen_lines;
-		if (_scrollback_pos == _scrollback.size()) {
-			_scrollback_pos += _pending_saved_scrollback.size();
-		}
 		if (_pending_saved_scrollback.size() > 0) {
 			bool at_end = _scrollback_pos == _scrollback.size();
 			_scrollback.insert(_scrollback.end(), _pending_saved_scrollback.begin(), _pending_saved_scrollback.end());
@@ -1266,7 +1547,7 @@ GDTerm::_is_cursor_pos(int row, int col) {
 }
 
 bool
-GDTerm::_is_in_selection(int row, int col) {
+GDTerm::_is_in_selection(int max_selectable_col, int row, int col) {
 	int start_row = _select_start_row;
 	int start_col = _select_start_col;
 	int end_row = _select_end_row;
@@ -1281,13 +1562,20 @@ GDTerm::_is_in_selection(int row, int col) {
 	}
 
 	if ((row > start_row) && (row < end_row)) {
-		return true;
+		if (col < max_selectable_col) {
+			return true;
+		}
+		return false;
 	}
 
 	if (row == start_row) {
 		if (col >= start_col) {
 			if (row < end_row) {
-				return true;
+				if (col < max_selectable_col) {
+					return true;
+				} else {
+					return false;
+				}
 			}
 			if (col <= end_col) {
 				return true;
@@ -1316,6 +1604,27 @@ GDTerm::_is_control_tab(Key code) {
 	return false;
 }
 
+bool
+GDTerm::_is_control_shift_c(Key code) {
+	int ctrl = code & godot::KeyModifierMask::KEY_MASK_CTRL;
+	int shift = code & godot::KeyModifierMask::KEY_MASK_SHIFT;
+	int key = code & godot::KeyModifierMask::KEY_CODE_MASK;
+	if (ctrl && shift && (key == Key::KEY_C)) {
+		return true;
+	}
+	return false;
+}
+
+bool
+GDTerm::_is_control_shift_v(Key code) {
+	int ctrl = code & godot::KeyModifierMask::KEY_MASK_CTRL;
+	int shift = code & godot::KeyModifierMask::KEY_MASK_SHIFT;
+	int key = code & godot::KeyModifierMask::KEY_CODE_MASK;
+	if (ctrl && shift && (key == Key::KEY_V)) {
+		return true;
+	}
+	return false;
+}
 bool
 GDTerm::_is_shift_control_tab(Key code) {
 	int key = code & godot::KeyModifierMask::KEY_CODE_MASK;
@@ -1386,6 +1695,16 @@ GDTerm::_resize_screen_lines() {
 	_pending_state = STATE_SCREEN_RESIZE;
 	_screen_lines.resize(_rows); 
 	_pending_screen_lines.resize(_rows);
+	for (int i=0; i<_rows; i++) {
+		if (_screen_lines[i].dirs.size() == 0) {
+			_screen_lines[i].glyph_length = _cols; 
+			_screen_lines[i].selectable_length = 0; 
+		}
+		if (_pending_screen_lines[i].dirs.size() == 0) {
+			_pending_screen_lines[i].glyph_length = _cols; 
+			_pending_screen_lines[i].selectable_length = 0; 
+		}
+	}
 	GDTermLineDirectiveData space;
 	space.text = " ";
 	GDTermLineDirective space_dir;
@@ -1394,10 +1713,16 @@ GDTerm::_resize_screen_lines() {
 	for (int i=0; i<_pending_screen_lines.size(); i++) {
 		GDTermLine &line = _pending_screen_lines[i];	
 		int col = 0;
+		line.glyph_length = 0;
+		line.selectable_length = 0;
 		auto dir_iter = line.dirs.begin();
 		auto dir_end = line.dirs.end();
 		for (;dir_iter!=dir_end; ++dir_iter) {
 			if (dir_iter->kind == DIRECTIVE_WRITE_GLYPH) {
+				line.glyph_length += 1;
+				if (dir_iter->data.text != " ") {
+					line.selectable_length = line.glyph_length;
+				}
 				col += 1;
 				if (col >= _cols) {
 					line.dirs.erase(++dir_iter, dir_end);
@@ -1487,8 +1812,17 @@ GDTerm::_send_input_chunk(int max_send) {
 
 	std::memcpy(buffer, bytes.ptr(), amount);
 	buffer[amount] = '\0';
+	log_pty_input(buffer);
 	if (_proxy->send_string(buffer) >= 0) {
 		_send_input_buffer = _send_input_buffer.substr(amount);
+	}
+}
+
+void
+GDTerm::log_pty_input(const char * data) {
+	if (_vt_handler_input_log != nullptr) {
+		*_vt_handler_input_log << "KEY:'" << data << "':KEY" << std::endl;
+		_vt_handler_input_log->flush();
 	}
 }
 

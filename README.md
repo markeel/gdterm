@@ -5,7 +5,12 @@ GDTerm the Godot In-Editor Terminal
 ## Description
 
 This project was created to address the needs of developers who are working on their game in the Godot editor 
-and also need to perform actions at the command line (like start and stop servers, monitor logs, etc.).  In other words this 
+and also need to perform actions at the command line (like start and stop servers, monitor logs, etc.).  
+
+It might also help people who use one of the [alternative programming languages](https://github.com/Godot-Languages-Support/godot-lang-support),  
+as it's possible to run Helix, Neovim, or Emacs within gdterm. 
+
+In other words this 
 is for those of us who like to keep the Godot Editor in full-screen and not shuffle their windows when needing to do command 
 line tasks.
 
@@ -17,6 +22,7 @@ It provides the following features:
 * Independent scrollback in each terminal
 * Copy and paste in each terminal
 * Works fine with typical command line tools: vi, top, tail
+* Supports unicode with caveats
 
 The following are its current limitations
 * Only provided for Linux and Windows (Mac in the future)
@@ -25,26 +31,30 @@ The following are its current limitations
 
 ### Dependencies
 
-* Developed against Godot 4.3-stable
+* Developed against Godot 4.4-stable but should still work with Godot 4.3-stable
 * Godot supported Linux or Windows distribution
 * Environment suitable for compiling an extension (if compiling from source)
   * See: https://docs.godotengine.org/en/stable/tutorials/scripting/gdextension/gdextension_cpp_example.html
 
 ### Installing
 
-Source is only on GitHub at the moment, once it matures a bit, a version for the Asset Lib will be created
-that will make it easier to install.
+Source is on GitHub and there is the latest stable version in the Godot AssetLib 
+
+Note: Precompiled binaries are only created when about to be released to the Godot AssetLib,
+so if you want to use the pre-compiled binaries, you should pull this down from a "release",
+and not just the "main" branch.
 
 To use the pre-compiled binaries:
 
 * git clone http://github.com/markeel/gdterm
+* git switch &lt;release tag&gt;
 * copy addons directory to the Godot project you need this extension
 
 To compile from source instead of using the pre-compiled library:
 
 * git clone http://github.com/markeel/gdterm
-* git submodule update --init --recursive
 * cd gdterm
+* git submodule update --init --recursive
 * scons
 * copy addons directory to the Godot project you need this extension
 
@@ -80,6 +90,56 @@ A terminal can be closed from the context menu as well.
 A restart will clear the window and start a new terminal session.  This is also the way to
 get a terminal session going again if the shell being used by this terminal has been exited.
 
+## Settings
+
+The GDTerm plugin has the following settings available under Editor->Editor Settings...
+
+The settings are in the Gdterm section and are as follows:
+
+- Layout: This indicates where the terminal should reside within the Godot editor.
+
+  - main - The terminal will be in the main window (same place as 2D, 3D, Script, and AssetLib)
+           this option gives the most room for doing tasks like editing configuration files
+           or examining listings.
+
+  - bottom - The terminal will be in the bottom panel area (where Output, Debugger, Audio, etc.)
+             are located.
+
+  - both - There will be 2 terminals (one in the main area, and the other in the bottom panel)
+
+- Theme: This has one of the 3 themes supported, and changes the colors, foreground and background
+         for all the terminal windows.
+
+- Initial Commands: This is zero, one, or more commands that will be executed when a terminal window
+                    starts up.  They are only executed when initially created or a "restart" is
+                    performed on the window.
+
+- Send Alt/Meta as Escape: This checkbox enables sending an Escape character before sending the
+                           character pressed while holding down Alt or Meta keys.  This is mostly to help
+                           support Emacs.  It defaults to unset, so Alt and Meta have no effect without
+                           setting this flag.  It never tries to shift the characters into the extended
+                           ASCII range because that would be an invalid UTF-8 character.
+ 
+## Unicode and UTF-8 encoding
+
+The GDTerm plugin expects all input and output to be UTF-8.  This is the default for most Linux 
+distributions, if it isn't in your distribution, the easiest option may be to change your locale.
+The underlying Windows pseudo-terminal also uses UTF-8 so you do not have to do anything
+special in a Windows environment.  
+
+Having said that, not all programs in Windows are Unicode aware and you will likely see strange characters
+since those programs (like "type") don't understand Unicode or UTF-8.   It is generally safer to use
+Powershell on the Windows platform.
+
+The GDTerm plugin attempts to handle special unicode characters that are composed from multiple unicode code points,
+but it is limited by the available fonts to render those characters and how the applications
+you are actually running treat those characters.  
+
+For instance the way that the bash shell behaves and the way that vi behave are not entirely consistent
+when using composed unicode characters.  If you just have a few, it will probably
+be sufficient.  For better or worse, most of the other terminals I compared GDTerm with also have issues
+with those kinds of characters.
+
 ## Help
 
 This is a brand new extension, so if you run into problems, create an issue, for general 
@@ -90,6 +150,10 @@ questions you can use the Discussions tab.
 markeel
 
 ## Version History
+
+* 0.99
+    * Support for Editor Settings
+    * Better support for Unicode
 
 * 0.95
     * Support for Windows

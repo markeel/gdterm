@@ -1,0 +1,6 @@
+Import('env')
+ 
+tool_env = env.Clone()
+gen_unicode_mark = tool_env.Program("gen_unicode_mark.cpp")
+
+Return("gen_unicode_mark")

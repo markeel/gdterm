@@ -1,7 +1,50 @@
 @tool
-extends PanelContainer
+extends MarginContainer
 
 var _id : int = 0
+var _initial_cmds : PackedStringArray = PackedStringArray()
+
+func apply_themes():
+	_apply_child_themes(self)
+
+func set_initial_cmds(cmds):
+	_apply_child_cmds(self, cmds)
+
+func set_alt_meta(setting):
+	_apply_child_alt_meta(self, setting)
+
+func _apply_child_themes(parent):
+	for child in parent.get_children():
+		if child is VSplitContainer:
+			_apply_child_themes(child)
+		elif child is HSplitContainer:
+			_apply_child_themes(child)
+		elif child is AudioStreamPlayer:
+			pass
+		else:
+			child.apply_theme()
+
+func _apply_child_cmds(parent, cmds):
+	for child in parent.get_children():
+		if child is VSplitContainer:
+			_apply_child_cmds(child, cmds)
+		elif child is HSplitContainer:
+			_apply_child_cmds(child, cmds)
+		elif child is AudioStreamPlayer:
+			pass
+		else:
+			child.apply_cmds(cmds)
+
+func _apply_child_alt_meta(parent, setting):
+	for child in parent.get_children():
+		if child is VSplitContainer:
+			_apply_child_alt_meta(child, setting)
+		elif child is HSplitContainer:
+			_apply_child_alt_meta(child, setting)
+		elif child is AudioStreamPlayer:
+			pass
+		else:
+			child.apply_alt_meta(setting)
 
 func _ready():
 	$term.set_id(_next_id())

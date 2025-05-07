@@ -7,6 +7,7 @@ if conf.CheckFunc('mbstowcs_s'):
 conf.Finish()
 
 ptyenv = env.Clone()
+ptyenv.Append(CPPDEFINES = "FORCE_UTF8")
 
 cpppath = [ ".", "thirdparty" ]
 sources = Glob("thirdparty/libtmt/*.c")
@@ -20,7 +21,7 @@ elif env["platform"] == "macos":
 	sources.extend(Glob("platform/linux/*.cpp"))
 	cpppath.extend([ "platform/linux" ])
 else:
-	ptyenv.Append(CPPDEFINES = "HAS_PRIMARY_CLIPBOARD")
+	env.Append(CPPDEFINES = "USE_PRIMARY_CLIPBOARD")
 	sources.extend(Glob("platform/linux/*.cpp"))
 	cpppath.extend([ "platform/linux" ])
 
