@@ -4,5 +4,6 @@
 compile_commands.json
 .sconf_temp
 config.log
+.DS_Store
 build/
 *.bak

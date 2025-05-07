@@ -3,7 +3,11 @@
 #include "pty_proxy_linux.h"
 #include <cstdlib>
 #include <cstring>
+#ifdef USE_PTY_UTIL_H
+#include <util.h>
+#else
 #include <pty.h>
+#endif
 #include <sys/ioctl.h>
 #include <unistd.h>
 

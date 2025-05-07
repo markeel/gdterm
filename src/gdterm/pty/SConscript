@@ -15,7 +15,12 @@ if env["platform"] == "windows":
 	sources.extend(Glob("platform/windows/*.cpp"))
 	cpppath.extend([ "platform/windows" ])
 	ptyenv.Append(CCFLAGS="-DUNICODE")
+elif env["platform"] == "macos":
+	ptyenv.Append(CPPDEFINES = "USE_PTY_UTIL_H")
+	sources.extend(Glob("platform/linux/*.cpp"))
+	cpppath.extend([ "platform/linux" ])
 else:
+	ptyenv.Append(CPPDEFINES = "HAS_PRIMARY_CLIPBOARD")
 	sources.extend(Glob("platform/linux/*.cpp"))
 	cpppath.extend([ "platform/linux" ])
 
