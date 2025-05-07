@@ -1,0 +1,27 @@
+
+name: Build MacOS
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: macos-15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build binaries
+        run: misc/build_macos.sh
+
+      - name: Check-in binaries
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          git add -f addons/gdterm/bin/libgdterm.macos.template_debug.framework/libgdterm.macos.template_debug
+          git add -f addons/gdterm/bin/libgdterm.macos.template_release.framework/libgdterm.macos.template_release
+          git commit -m "new binaries commit"
+          git push
+
