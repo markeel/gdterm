@@ -26,6 +26,7 @@ jobs:
           git push
 
   build_linux_win:
+    needs: build_macos
     runs-on: ubuntu-latest
     permissions:
       contents: write
