@@ -42,6 +42,7 @@ jobs:
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
+          git pull
           git add -f addons/gdterm/bin/libgdterm.linux.template_debug.arm64.so
           git add -f addons/gdterm/bin/libgdterm.linux.template_debug.x86_64.so
           git add -f addons/gdterm/bin/libgdterm.linux.template_release.arm64.so
