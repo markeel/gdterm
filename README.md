@@ -23,31 +23,24 @@ It provides the following features:
 * Copy and paste in each terminal
 * Works fine with typical command line tools: vi, top, tail
 * Supports unicode with caveats
-
-The following are its current limitations
-* Only provided for Linux and Windows (Mac in the future)
+* Supports Linux and Windows and Mac
 
 ## Getting Started
 
 ### Dependencies
 
-* Developed against Godot 4.4-stable but should still work with Godot 4.3-stable
-* Godot supported Linux or Windows distribution
+* Developed against Godot 4.3-stable
+* Godot supported Linux, Windows, or Mac distribution
 * Environment suitable for compiling an extension (if compiling from source)
   * See: https://docs.godotengine.org/en/stable/tutorials/scripting/gdextension/gdextension_cpp_example.html
 
 ### Installing
 
-Source is on GitHub and there is the latest stable version in the Godot AssetLib 
-
-Note: Precompiled binaries are only created when about to be released to the Godot AssetLib,
-so if you want to use the pre-compiled binaries, you should pull this down from a "release",
-and not just the "main" branch.
+Source is on GitHub and there is the latest stable version in the GD Asset Lib 
 
 To use the pre-compiled binaries:
 
 * git clone http://github.com/markeel/gdterm
-* git switch &lt;release tag&gt;
 * copy addons directory to the Godot project you need this extension
 
 To compile from source instead of using the pre-compiled library:
@@ -114,11 +107,9 @@ The settings are in the Gdterm section and are as follows:
                     starts up.  They are only executed when initially created or a "restart" is
                     performed on the window.
 
-- Send Alt/Meta as Escape: This checkbox enables sending an Escape character before sending the
-                           character pressed while holding down Alt or Meta keys.  This is mostly to help
-                           support Emacs.  It defaults to unset, so Alt and Meta have no effect without
-                           setting this flag.  It never tries to shift the characters into the extended
-                           ASCII range because that would be an invalid UTF-8 character.
+- Send Alt Meta as Esc: If checked, pressing the Alt or Meta keys with another character will send
+                        an ESC to the application in front of the other character being pressed.
+                        This is important for applications like Emacs that expect this behavior.
  
 ## Unicode and UTF-8 encoding
 
@@ -150,6 +141,11 @@ questions you can use the Discussions tab.
 markeel
 
 ## Version History
+
+* 1.0
+    * Support Mac OS
+    * Fixes for background color issues
+    * Allow Alt or Meta to be sent as as Esc for Emacs
 
 * 0.99
     * Support for Editor Settings

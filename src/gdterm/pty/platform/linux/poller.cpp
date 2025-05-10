@@ -3,7 +3,12 @@
 #include <cstring>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <signal.h>
+#ifdef USE_PTY_UTIL_H
+#include <util.h>
+#else
 #include <pty.h>
+#endif
 #include <poll.h>
 
 #include "poller.h"
@@ -19,9 +24,16 @@ Poller:: Poller(int poll_fd, pid_t poll_pid, PollHandler * handler) {
 	_poll_pid = poll_pid;
 	_handler = handler;
 
-	int rc = pipe2(_cmd, O_NONBLOCK);
+	// int rc = pipe2(_cmd, O_NONBLOCK);
+	int rc = pipe(_cmd);
 	if (rc < 0) {
-		fprintf(stderr, "error creating pipe: %s\n", strerror(errno));
+		fprintf(stderr, "Error creating pipe: %s\n", strerror(errno));
+	}
+
+	rc = fcntl(_cmd[0], F_SETFL, O_NONBLOCK);
+	if (rc < 0) {
+		fprintf(stderr, "error setting pipe to non-blocking: %s\n", strerror(errno));
+		_cmd[0] = -1;
 	}
 }
 
