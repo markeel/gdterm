@@ -243,8 +243,8 @@ namespace godot {
 		void _restart_cursor();
 		bool _is_cursor_pos(int row, int col);
 		bool _is_in_selection(int max_sel_col, int row, int col);
-		bool _is_control_shift_c(Key code);
-		bool _is_control_shift_v(Key code);
+		bool _is_copy_request(Key code);
+		bool _is_paste_request(Key code);
 		bool _is_control_tab(Key code);
 		bool _is_shift_control_tab(Key code);
 		bool _is_control_c(Key code);

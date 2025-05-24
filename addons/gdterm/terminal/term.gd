@@ -22,6 +22,9 @@ func _ready():
 	$scrollbar.page = $GDTerm.get_num_screen_lines()
 	$scrollbar.max_value = $GDTerm.get_num_scrollback_lines() + $GDTerm.get_num_screen_lines()
 	$scrollbar.value = $GDTerm.get_num_scrollback_lines()
+	if OS.get_name() == "macOS":
+		$menu.set_item_text(0, "Copy (Cmd+C)")
+		$menu.set_item_text(1, "Paste (Cmd+V)")
 	apply_theme()
 
 func apply_cmds(cmds):
@@ -29,6 +32,21 @@ func apply_cmds(cmds):
 
 func apply_alt_meta(setting):
 	$GDTerm.send_alt_meta_as_escape = setting
+
+func apply_font_setting(font, font_size):
+	if font != null:
+		$GDTerm.font = font
+		$GDTerm.dim_font = FontVariation.new()
+		$GDTerm.dim_font.base_font = font
+		$GDTerm.dim_font.variation_embolden = 0.8
+		$GDTerm.bold_font = FontVariation.new()
+		$GDTerm.bold_font.base_font = font
+		$GDTerm.bold_font.variation_embolden = 1.2
+	else:
+		$GDTerm.font = preload("res://addons/gdterm/fonts/SourceCodePro-Medium.ttf")
+		$GDTerm.dim_font = preload("res://addons/gdterm/fonts/SourceCodePro-Light.ttf")
+		$GDTerm.bold_font = preload("res://addons/gdterm/fonts/SourceCodePro-Bold.ttf")
+	$GDTerm.font_size = font_size
 
 func apply_theme():
 	if has_theme_color("background", "GDTerm"):     $GDTerm.background     = get_theme_color("background", "GDTerm")
