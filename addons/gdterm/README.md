@@ -111,6 +111,12 @@ The settings are in the Gdterm section and are as follows:
                         an ESC to the application in front of the other character being pressed.
                         This is important for applications like Emacs that expect this behavior.
  
+- Font: If not empty, it will use the font at the specified path as the font in the terminal window,
+        it should always be a mono spaced font, or the terminal will not work properly
+
+- Font Size: This defaults to 14 but can be adjusted to be any size.  This may be important for 
+             Mac with Retina display
+
 ## Unicode and UTF-8 encoding
 
 The GDTerm plugin expects all input and output to be UTF-8.  This is the default for most Linux 
@@ -141,6 +147,10 @@ questions you can use the Discussions tab.
 markeel
 
 ## Version History
+
+* 1.0.1
+    * Use Cmd key instead of Ctrl on Mac OS
+    * Allow Font and Font size to be overridden in Editor settings
 
 * 1.0
     * Support Mac OS

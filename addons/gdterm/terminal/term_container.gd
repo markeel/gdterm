@@ -13,6 +13,9 @@ func set_initial_cmds(cmds):
 func set_alt_meta(setting):
 	_apply_child_alt_meta(self, setting)
 
+func set_font_setting(font, font_size):
+	_apply_child_font_setting(self, font, font_size)
+
 func _apply_child_themes(parent):
 	for child in parent.get_children():
 		if child is VSplitContainer:
@@ -45,6 +48,17 @@ func _apply_child_alt_meta(parent, setting):
 			pass
 		else:
 			child.apply_alt_meta(setting)
+
+func _apply_child_font_setting(parent, font, font_size):
+	for child in parent.get_children():
+		if child is VSplitContainer:
+			_apply_child_font_setting(child, font, font_size)
+		elif child is HSplitContainer:
+			_apply_child_font_setting(child, font, font_size)
+		elif child is AudioStreamPlayer:
+			pass
+		else:
+			child.apply_font_setting(font, font_size)
 
 func _ready():
 	$term.set_id(_next_id())

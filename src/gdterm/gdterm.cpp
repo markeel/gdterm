@@ -963,9 +963,9 @@ GDTerm::_gui_input(const Ref<InputEvent> & p_event) {
 			assert(sizeof(wchar_t) == sizeof(int64_t));
 			wchar_t unicode = (wchar_t)ke->get_unicode();
 			Key code = ke->get_keycode_with_modifiers();
-			if (_is_control_shift_c(code)) {
+			if (_is_copy_request(code)) {
 				emit_signal("copy_request");
-			} else if (_is_control_shift_v(code)) {
+			} else if (_is_paste_request(code)) {
 				emit_signal("paste_request");
 			} else if (_is_shift_control_tab(code)) {
 				Control * prev = find_prev_valid_focus();
@@ -1605,24 +1605,38 @@ GDTerm::_is_control_tab(Key code) {
 }
 
 bool
-GDTerm::_is_control_shift_c(Key code) {
+GDTerm::_is_copy_request(Key code) {
+	int key = code & godot::KeyModifierMask::KEY_CODE_MASK;
+#ifdef USE_COMMAND_KEY_FOR_SHORTCUT
+	int meta = code & godot::KeyModifierMask::KEY_MASK_META;
+	if (meta && (key == Key::KEY_C)) {
+		return true;
+	}
+#else
 	int ctrl = code & godot::KeyModifierMask::KEY_MASK_CTRL;
 	int shift = code & godot::KeyModifierMask::KEY_MASK_SHIFT;
-	int key = code & godot::KeyModifierMask::KEY_CODE_MASK;
 	if (ctrl && shift && (key == Key::KEY_C)) {
 		return true;
 	}
+#endif
 	return false;
 }
 
 bool
-GDTerm::_is_control_shift_v(Key code) {
+GDTerm::_is_paste_request(Key code) {
+	int key = code & godot::KeyModifierMask::KEY_CODE_MASK;
+#ifdef USE_COMMAND_KEY_FOR_SHORTCUT
+	int meta = code & godot::KeyModifierMask::KEY_MASK_META;
+	if (meta && (key == Key::KEY_V)) {
+		return true;
+	}
+#else
 	int ctrl = code & godot::KeyModifierMask::KEY_MASK_CTRL;
 	int shift = code & godot::KeyModifierMask::KEY_MASK_SHIFT;
-	int key = code & godot::KeyModifierMask::KEY_CODE_MASK;
 	if (ctrl && shift && (key == Key::KEY_V)) {
 		return true;
 	}
+#endif
 	return false;
 }
 bool

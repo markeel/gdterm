@@ -6,6 +6,9 @@ env.Append(LIBS=ptylib)
 
 sources = Glob("*.cpp")
 
+if env["platform"] == "macos":
+	env.Append(CPPDEFINES = "USE_COMMAND_KEY_FOR_SHORTCUT")
+
 library = env.SharedLibrary(name, source=sources)
 
 Return("library")

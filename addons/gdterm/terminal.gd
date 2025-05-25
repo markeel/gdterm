@@ -13,6 +13,8 @@ var current_layout = null
 var active_theme = null
 var active_initial_cmds = null
 var active_alt_meta = false
+var active_font : Font = null
+var active_font_size : int = 14
 
 const THEME_EDITOR : int = 0
 const THEME_DARK   : int = 1
@@ -47,6 +49,20 @@ var send_alt_meta_as_esc_info = {
 	"type": TYPE_BOOL,
 }
 
+var font_info = {
+	"name": "gdterm/font",
+	"type": TYPE_STRING,
+	"hint" : PROPERTY_HINT_GLOBAL_FILE,
+	"hint_string" : "*.ttf,*.otf,*.woff,*.woff2,*.pfb,*.pfm"
+}
+
+var font_size_info = {
+	"name": "gdterm/font_size",
+	"type": TYPE_INT,
+	"hint" : PROPERTY_HINT_RANGE,
+	"hint_string" : "8,64,1"
+}
+
 func _on_settings_changed():
 	var settings = EditorInterface.get_editor_settings()
 	
@@ -62,9 +78,22 @@ func _on_settings_changed():
 	var send_alt_meta_as_esc = false
 	if settings.has_setting("gdterm/send_alt_meta_as_esc"):
 		send_alt_meta_as_esc = settings.get_setting("gdterm/send_alt_meta_as_esc")
+	var font : FontFile = null
+	if settings.has_setting("gdterm/font"):
+		var font_name = settings.get_setting("gdterm/font")
+		if not font_name.is_empty():
+			font = FontFile.new()
+			var err = font.load_dynamic_font(font_name)
+			if err != Error.OK:
+				print("Unable to load %s: (%s)" % [font_name, err])
+				font = null
+	var font_size : int = 14
+	if settings.has_setting("gdterm/font_size"):
+		font_size = settings.get_setting("gdterm/font_size")
 	_apply_theme(theme)
 	_apply_initial_cmds(initial_cmds)
 	_apply_term_alt_meta_setting(send_alt_meta_as_esc)
+	_apply_font_setting(font, font_size)
 	_apply_layout(layout)
 
 func _apply_theme(theme):
@@ -162,6 +191,15 @@ func _apply_term_alt_meta_setting(setting):
 			bottom_panel_instance.set_alt_meta(setting)
 		active_alt_meta = setting
 
+func _apply_font_setting(font : Font, font_size : int):
+	if active_font != font or active_font_size != font_size:
+		if main_panel_instance != null:
+			main_panel_instance.get_main().set_font_setting(font, font_size)
+		if bottom_panel_instance != null:
+			bottom_panel_instance.get_main().set_font_setting(font, font_size)
+		active_font = font
+		active_font_size = font_size
+
 func _enter_tree() -> void:
 	var settings = EditorInterface.get_editor_settings()
 	
@@ -187,6 +225,24 @@ func _enter_tree() -> void:
 		settings.set_setting("gdterm/send_alt_meta_as_esc", alt_meta_setting)
 	_apply_term_alt_meta_setting(alt_meta_setting)
 
+	var font_setting : FontFile = null
+	if settings.has_setting("gdterm/font"):
+		var font_setting_name : String = settings.get_setting("gdterm/font")
+		if not font_setting_name.is_empty(): 
+			font_setting = FontFile.new()
+			var err = font_setting.load_dynamic_font(font_setting_name)
+			if err != Error.OK:
+				print("Unable to load font %s (%s)" % [font_setting_name, err])
+				font_setting = null
+	else:
+		settings.set_setting("gdterm/font", "")
+	var font_size_setting : int = 14
+	if settings.has_setting("gdterm/font_size"):
+		font_size_setting = settings.get_setting("gdterm/font_size")
+	else:
+		settings.set_setting("gdterm/font_size", font_size_setting)
+	_apply_font_setting(font_setting, font_size_setting)
+
 	var layout = LAYOUT_MAIN
 	if settings.has_setting("gdterm/layout"):
 		layout = settings.get_setting("gdterm/layout")
@@ -200,6 +256,8 @@ func _enter_tree() -> void:
 	settings.add_property_info(layout_property_info)
 	settings.add_property_info(initial_cmds_info)
 	settings.add_property_info(send_alt_meta_as_esc_info)
+	settings.add_property_info(font_info)
+	settings.add_property_info(font_size_info)
 	settings.settings_changed.connect(_on_settings_changed)
 	
 	# Hide the main panel. Very much required.
