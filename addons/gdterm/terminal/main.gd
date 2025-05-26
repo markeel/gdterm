@@ -1,6 +1,9 @@
 @tool
 extends MarginContainer
 
+func set_active(flag : bool):
+	$term_container.set_active(flag)
+
 func theme_changed():
 	$term_container.apply_themes()
 

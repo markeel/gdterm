@@ -130,7 +130,7 @@ Poller::run() {
 					if (buffer[0] == commands[CMD_EXIT]) {
 						kill(_poll_pid, SIGHUP);
 						close(_poll_fd);
-						waitpid(_poll_pid, nullptr, 0);
+						waitpid(_poll_pid, nullptr, WNOHANG);
 						quit = true;
 					} else if (buffer[0] == commands[CMD_RESIZE]) {
 						_handler->apply_size();
