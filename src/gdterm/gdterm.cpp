@@ -99,6 +99,7 @@ void GDTerm::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_on_inactive"), &GDTerm::_on_inactive);
 	ClassDB::bind_method(D_METHOD("_on_resized"), &GDTerm::_on_resized);
 	ClassDB::bind_method(D_METHOD("_notify_scrollback"), &GDTerm::_notify_scrollback);
+	ClassDB::bind_method(D_METHOD("_resize_pty"), &GDTerm::_resize_pty);
 
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "font", PROPERTY_HINT_RESOURCE_TYPE, "Font"), "set_font", "get_font");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "dim_font", PROPERTY_HINT_RESOURCE_TYPE, "Font"), "set_dim_font", "get_dim_font");
@@ -194,6 +195,8 @@ GDTerm::GDTerm() {
 	_min_size = Vector2(100, 100);
 	_rows = 24;
 	_cols = 80;
+	_pending_resize_row = _rows;
+	_pending_resize_col = _cols;
 
 	// Selection
 	_selecting = false;
@@ -1230,6 +1233,9 @@ GDTerm::screen_done() {
 	}
 	_pending_dirty = true;
 	_pending_state = STATE_SCREEN_DONE;
+	if ((_pending_resize_col != _cols) || (_pending_resize_row != _rows)) {
+		call_deferred("_resize_pty");
+	}
 }
 
 bool
@@ -1260,6 +1266,9 @@ GDTerm::scroll_done() {
 	_pending_saved_scrollback.insert(_pending_saved_scrollback.end(), _pending_scrollback.begin(), _pending_scrollback.end());
 	_pending_dirty = true;
 	_pending_state = STATE_SCREEN_DONE;
+	if ((_pending_resize_col != _cols) || (_pending_resize_row != _rows)) {
+		call_deferred("_resize_pty");
+	}
 }
 
 void
@@ -1273,6 +1282,9 @@ void
 GDTerm::resize_complete() {
 	const std::lock_guard<std::mutex> lock(_pending_mutex);
 	_pending_state = STATE_SCREEN_DONE;
+	if ((_pending_resize_col != _cols) || (_pending_resize_row != _rows)) {
+		call_deferred("_resize_pty");
+	}
 }
 
 bool
@@ -1703,10 +1715,40 @@ GDTerm::_get_minimum_size() const {
 	return _min_size;
 }
 
-void
+static void
+dump_line(const GDTermLine & line) {
+    for (int i=0; i<line.dirs.size(); i++) {
+        if (line.dirs[i].kind == DIRECTIVE_WRITE_GLYPH) {
+            fprintf(stderr, "%s", line.dirs[i].data.text.c_str());
+        }
+    }
+    fprintf(stderr, "\n");
+}
+
+bool
 GDTerm::_resize_screen_lines() {
 	const std::lock_guard<std::mutex> lock(_pending_mutex);
-	_pending_state = STATE_SCREEN_RESIZE;
+	if (_pending_state != STATE_SCREEN_DONE) {
+		fprintf(stderr, "not doing resize, pending is not in SCREEN_DONE state: was=%d\n", _pending_state);
+		return false;
+	}
+	if (_active) {
+		_pending_state = STATE_SCREEN_RESIZE;
+	}
+	_pending_resize_row = _rows;
+	_pending_resize_col = _cols;
+	if (_pending_screen_lines.size() > _rows) {
+		int scroll_count = _pending_screen_lines.size() - _rows;
+		int cursor_from_bottom = _pending_screen_lines.size() - 1 - _pending_cursor_row;
+		if (cursor_from_bottom > 0) {
+			scroll_count -= cursor_from_bottom;
+		}
+		if (scroll_count > 0) {
+			auto new_begin = std::next(_pending_screen_lines.begin(), scroll_count);
+			_pending_saved_scrollback.insert(_pending_saved_scrollback.end(), _pending_screen_lines.begin(), new_begin);
+			_pending_screen_lines.erase(_pending_screen_lines.begin(), std::next(_pending_screen_lines.begin(), scroll_count));
+		}
+	}
 	_screen_lines.resize(_rows); 
 	_pending_screen_lines.resize(_rows);
 	for (int i=0; i<_rows; i++) {
@@ -1750,11 +1792,14 @@ GDTerm::_resize_screen_lines() {
 		}
 	}
 	_pending_dirty = true;
+	return true;
 }
 
 void
 GDTerm::_resize_pty() {
-	_resize_screen_lines();
+	if (!_resize_screen_lines()) {
+		return;
+	}
 	if (_proxy != nullptr) {
 		_proxy->resize_screen(_rows, _cols);
 	}

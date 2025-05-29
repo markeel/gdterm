@@ -1,6 +1,15 @@
 @tool
 extends HBoxContainer
 
+@export var active = false
+
+func set_active(a):
+	active = a
+	if is_inside_tree():
+		if active and is_visible_in_tree() and $GDTerm.is_inside_tree():
+			$GDTerm.start()
+			_send_initial_cmds()
+
 var _restart = false
 var _id = 0
 var _gd_term_changing = false
@@ -142,15 +151,19 @@ func _do_restart():
 		_send_initial_cmds()
 
 func _on_visibility_changed() -> void:
-	if visible:
+	if is_visible_in_tree() and active:
 		if $GDTerm.is_inside_tree():
+			await get_tree().create_timer(0.5).timeout
 			$GDTerm.start()
 			_send_initial_cmds()
 
 func _on_gd_term_tree_entered() -> void:
-	if visible:
-		$GDTerm.start()
-		_send_initial_cmds()
+	pass
+	#if $GDTerm.is_visible_in_tree() and active:
+		#await get_tree().create_timer(2.0).timeout
+		#print("starting because entered tree: %s" % get_rect())
+		#$GDTerm.start()
+		#_send_initial_cmds()
 
 func _on_gd_term_paste_request() -> void:
 	_do_paste()

@@ -86,6 +86,8 @@ namespace godot {
 		int                     _pending_cursor_col;
 		int                     _pending_cursor_displayed;
 		bool                    _drawing_active;
+		int                     _pending_resize_row;
+		int                     _pending_resize_col;
 
 		// Cursor settings
 		Timer * _cursor_timer;
@@ -261,7 +263,7 @@ namespace godot {
 		void _send_input_chunk(int max_send);
 		bool _is_screen_dirty();
 		void _clear_pending();
-		void _resize_screen_lines();
+		bool _resize_screen_lines();
 
 		void _on_cursor_timeout();
 		void _on_blink_timeout();

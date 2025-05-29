@@ -2,18 +2,29 @@
 extends MarginContainer
 
 var _id : int = 0
-var _initial_cmds : PackedStringArray = PackedStringArray()
+var _initial_cmds : String = ""
+var _font : Font = null
+var _font_size : int = 14
+var _meta : bool = false
+
+func set_active(flag : bool):
+	_apply_child_active(self, flag)
 
 func apply_themes():
 	_apply_child_themes(self)
 
 func set_initial_cmds(cmds):
+	if cmds != null:
+		_initial_cmds = cmds
 	_apply_child_cmds(self, cmds)
 
 func set_alt_meta(setting):
+	_meta = setting
 	_apply_child_alt_meta(self, setting)
 
 func set_font_setting(font, font_size):
+	_font = font
+	_font_size = font_size
 	_apply_child_font_setting(self, font, font_size)
 
 func _apply_child_themes(parent):
@@ -60,6 +71,17 @@ func _apply_child_font_setting(parent, font, font_size):
 		else:
 			child.apply_font_setting(font, font_size)
 
+func _apply_child_active(parent, active):
+	for child in parent.get_children():
+		if child is VSplitContainer:
+			_apply_child_active(child, active)
+		elif child is HSplitContainer:
+			_apply_child_active(child, active)
+		elif child is AudioStreamPlayer:
+			pass
+		else:
+			child.set_active(active)
+
 func _ready():
 	$term.set_id(_next_id())
 	$term.bell.connect(_on_bell)
@@ -96,7 +118,11 @@ func _on_new_above(node):
 	vsplitter.set_v_size_flags(SIZE_FILL)	
 	parent.add_child(vsplitter)
 	parent.move_child(vsplitter, child_pos)
-
+	new_node.apply_alt_meta(_meta)
+	new_node.apply_cmds(_initial_cmds)
+	new_node.apply_font_setting(_font, _font_size)
+	new_node.set_active(true)
+	
 func _on_new_below(node):
 	var size = node.get_size()
 	var vsplitter = VSplitContainer.new()
@@ -117,6 +143,10 @@ func _on_new_below(node):
 	vsplitter.set_v_size_flags(SIZE_FILL)
 	parent.add_child(vsplitter)
 	parent.move_child(vsplitter, child_pos)
+	new_node.apply_alt_meta(_meta)
+	new_node.apply_cmds(_initial_cmds)
+	new_node.apply_font_setting(_font, _font_size)
+	new_node.set_active(true)
 
 func _on_new_left(node):
 	var size = node.get_size()
@@ -138,6 +168,10 @@ func _on_new_left(node):
 	hsplitter.set_v_size_flags(SIZE_FILL)
 	parent.add_child(hsplitter)
 	parent.move_child(hsplitter, child_pos)
+	new_node.apply_alt_meta(_meta)
+	new_node.apply_cmds(_initial_cmds)
+	new_node.apply_font_setting(_font, _font_size)
+	new_node.set_active(true)
 
 func _on_new_right(node):
 	var size = node.get_size()
@@ -159,6 +193,10 @@ func _on_new_right(node):
 	hsplitter.set_v_size_flags(SIZE_FILL)
 	parent.add_child(hsplitter)
 	parent.move_child(hsplitter, child_pos)
+	new_node.apply_alt_meta(_meta)
+	new_node.apply_font_setting(_font, _font_size)
+	new_node.apply_cmds(_initial_cmds)
+	new_node.set_active(true)
 
 func _on_close(node):
 	var parent = node.get_parent()

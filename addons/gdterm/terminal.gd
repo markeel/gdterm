@@ -152,6 +152,9 @@ func _apply_layout(layout):
 				if active_theme != null:
 					main_panel_instance.get_main().set_theme(active_theme)
 				main_panel_instance.get_main().set_initial_cmds(active_initial_cmds)
+				main_panel_instance.get_main().set_alt_meta(active_alt_meta)
+				main_panel_instance.get_main().set_font_setting(active_font, active_font_size)
+				main_panel_instance.get_main().set_active(true)
 				main_panel_instance.visible = show_main
 				EditorInterface.get_editor_main_screen().add_child(main_panel_instance)
 		if layout == LAYOUT_BOTTOM or layout == LAYOUT_BOTH:
@@ -160,6 +163,9 @@ func _apply_layout(layout):
 				if active_theme != null:
 					bottom_panel_instance.set_theme(active_theme)
 					bottom_panel_instance.set_initial_cmds(active_initial_cmds)
+					bottom_panel_instance.set_alt_meta(active_alt_meta)
+					bottom_panel_instance.set_font_setting(active_font, active_font_size)
+					bottom_panel_instance.set_active(true)
 					bottom_panel_instance.theme_changed()
 				add_control_to_bottom_panel(bottom_panel_instance, "Terminal")
 		if layout == LAYOUT_MAIN:
@@ -196,7 +202,7 @@ func _apply_font_setting(font : Font, font_size : int):
 		if main_panel_instance != null:
 			main_panel_instance.get_main().set_font_setting(font, font_size)
 		if bottom_panel_instance != null:
-			bottom_panel_instance.get_main().set_font_setting(font, font_size)
+			bottom_panel_instance.set_font_setting(font, font_size)
 		active_font = font
 		active_font_size = font_size
 
@@ -211,19 +217,13 @@ func _enter_tree() -> void:
 		theme = settings.get_setting("gdterm/theme")
 	_apply_theme(theme)
 	
-	var initial_cmds = String()
-	if settings.has_setting("gdterm/initial_commands"):
-		initial_cmds = settings.get_setting("gdterm/initial_commands")
+	var layout = LAYOUT_MAIN
+	if settings.has_setting("gdterm/layout"):
+		layout = settings.get_setting("gdterm/layout")
 	else:
-		settings.set_setting("gdterm/initial_commands", initial_cmds)
-	_apply_initial_cmds(initial_cmds)
-
-	var alt_meta_setting = false
-	if settings.has_setting("gdterm/sent_alt_meta_as_esc"):
-		alt_meta_setting = settings.get_setting("gdterm/send_alt_meta_as_esc")
-	else:
-		settings.set_setting("gdterm/send_alt_meta_as_esc", alt_meta_setting)
-	_apply_term_alt_meta_setting(alt_meta_setting)
+		settings.set_setting("gdterm/layout", layout)
+		layout = settings.get_setting("gdterm/layout")
+	_apply_layout(layout)
 
 	var font_setting : FontFile = null
 	if settings.has_setting("gdterm/font"):
@@ -236,6 +236,7 @@ func _enter_tree() -> void:
 				font_setting = null
 	else:
 		settings.set_setting("gdterm/font", "")
+
 	var font_size_setting : int = 14
 	if settings.has_setting("gdterm/font_size"):
 		font_size_setting = settings.get_setting("gdterm/font_size")
@@ -243,13 +244,12 @@ func _enter_tree() -> void:
 		settings.set_setting("gdterm/font_size", font_size_setting)
 	_apply_font_setting(font_setting, font_size_setting)
 
-	var layout = LAYOUT_MAIN
-	if settings.has_setting("gdterm/layout"):
-		layout = settings.get_setting("gdterm/layout")
+	var alt_meta_setting = false
+	if settings.has_setting("gdterm/send_alt_meta_as_esc"):
+		alt_meta_setting = settings.get_setting("gdterm/send_alt_meta_as_esc")
 	else:
-		settings.set_setting("gdterm/layout", layout)
-		layout = settings.get_setting("gdterm/layout")
-	_apply_layout(layout)
+		settings.set_setting("gdterm/send_alt_meta_as_esc", alt_meta_setting)
+	_apply_term_alt_meta_setting(alt_meta_setting)
 
 	# Make sure shows as enum
 	settings.add_property_info(theme_property_info)
@@ -260,6 +260,19 @@ func _enter_tree() -> void:
 	settings.add_property_info(font_size_info)
 	settings.settings_changed.connect(_on_settings_changed)
 	
+	# All the initial settings have been made, so make it active
+	if main_panel_instance != null:
+		main_panel_instance.get_main().set_active(true)
+	if bottom_panel_instance != null:
+		bottom_panel_instance.set_active(true)
+
+	var initial_cmds = String()
+	if settings.has_setting("gdterm/initial_commands"):
+		initial_cmds = settings.get_setting("gdterm/initial_commands")
+	else:
+		settings.set_setting("gdterm/initial_commands", initial_cmds)
+	_apply_initial_cmds(initial_cmds)
+
 	# Hide the main panel. Very much required.
 	_make_visible(false)
 
