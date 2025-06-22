@@ -55,7 +55,7 @@ func apply_font_setting(font, font_size):
 		$GDTerm.font = preload("res://addons/gdterm/fonts/SourceCodePro-Medium.ttf")
 		$GDTerm.dim_font = preload("res://addons/gdterm/fonts/SourceCodePro-Light.ttf")
 		$GDTerm.bold_font = preload("res://addons/gdterm/fonts/SourceCodePro-Bold.ttf")
-	$GDTerm.font_size = font_size
+	$GDTerm.font_size = floori(float(font_size) * EditorInterface.get_editor_scale())
 
 func apply_theme():
 	if has_theme_color("background", "GDTerm"):     $GDTerm.background     = get_theme_color("background", "GDTerm")
