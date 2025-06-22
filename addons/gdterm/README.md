@@ -148,6 +148,9 @@ markeel
 
 ## Version History
 
+* 1.0.2
+    * Scale fonts based on Editor Display Scale
+
 * 1.0.1
     * Use Cmd key instead of Ctrl on Mac OS
     * Allow Font and Font size to be overridden in Editor settings
